@@ -37,7 +37,7 @@ from evalcore import BELOW, EVALS_COLUMNS, MEETS, EvalError  # noqa: E402
 
 SCHEMA = "landing-loop/1"
 SKILL = "eval-kit"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 BET = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
 # Which eval figure a brief's metric names. Matched on the metric's words, never guessed beyond these.
 FIGURES = (

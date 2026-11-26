@@ -9,7 +9,7 @@ Against the landing brief: The brief's metric, Quote draft acceptance rate, is n
 Version v1.4 passes 24 of 30 held-out cases (80%, 95% interval 62.7 to 90.5) [L4], against 90% on development [L5].
 The interval's low end, 62.7%, is under the 80% target. More held-out cases would settle it.
 It finished 143 of 200 production tasks with no person stepping in (71.5%, 95% interval 64.9 to 77.3) [L6].
-Cost: cost not checked: run cost-budget-check.
+Cost per successful task, cited from cost-budget-check: $0.0338 [L7].
 
 ## Promotion
 
@@ -24,7 +24,7 @@ Each rate sits inside the other's 95% interval, so read the gain as direction, n
 | Version | Run | Held-out pass | Development pass | Without a person | Cost per successful task |
 |---|---|---|---|---|---|
 | v1.3 | 2026-10-15 | 21/30 (70%) | 52/70 (74.3%) | 118/200 (59%) | not checked |
-| v1.4 | 2026-11-15 | 24/30 (80%) | 63/70 (90%) | 143/200 (71.5%) | not checked |
+| v1.4 | 2026-11-15 | 24/30 (80%) | 63/70 (90%) | 143/200 (71.5%) | $0.0338 (cited) |
 
 ## Failure modes
 
@@ -59,10 +59,6 @@ The judge agreed with the human verdict on 100% of 8 cases. False accepts: none.
 - Say: the held-out pass rate for v1.4, with its case count. Quote autonomy only beside it.
 - Do not say: a development pass rate as the headline, a gain without a promotion verdict that allows it, or a cause for any change.
 
-## Warnings
-
-- cost not checked: run cost-budget-check. No cost figure is printed until it writes the cost key.
-
 ## Ledger
 
 | Row | Figure | Value | Basis | Source | Provenance |
@@ -73,3 +69,4 @@ The judge agreed with the human verdict on 100% of 8 cases. False accepts: none.
 | L4 | Held-out pass rate (v1.4) | 80% | 24 of 30 holdout eval rows passed; 95% interval 62.7 to 90.5 | quote-drafting.csv (sha256 ee43a12a2395) | Illustrative |
 | L5 | Development pass rate (v1.4) | 90% | 63 of 70 development eval rows passed | quote-drafting.csv (sha256 ee43a12a2395) | Illustrative |
 | L6 | Tasks finished without a person (v1.4) | 71.5% | 143 of 200 production rows succeeded with human_stepped_in false; 95% interval 64.9 to 77.3 | quote-drafting.csv (sha256 ee43a12a2395) | Illustrative |
+| L7 | Cost per successful task (v1.4), cited | $0.0338 | cited from the cost key (cost-budget-check 0.3.0), window 2026-11-01 to 2026-11-14 | cost-budget-check 0.3.0: priced cost / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15) | Illustrative |

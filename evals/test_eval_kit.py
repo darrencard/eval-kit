@@ -669,8 +669,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.3.0")
-        self.assertIn('version: "0.3.0"', skill)
+        self.assertEqual(plugin["version"], "0.3.1")
+        self.assertIn('version: "0.3.1"', skill)
 
 
 if __name__ == "__main__":

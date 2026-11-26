@@ -23,7 +23,7 @@ The first run seals the holdout and writes blind calibration cases for your judg
 
 ## Sample
 
-[examples/acme/eval-kit.html](examples/acme/eval-kit.html) is one bet, Acme's quote drafting, run end to end: the canonical brief from the landing-loop repo, quote-drafting traces and a sealed holdout. Every figure is illustrative. It also writes only the `evals` key of [examples/acme/landing/quote-drafting.json](examples/acme/landing/quote-drafting.json) and a Markdown twin. Regenerate it from the repo root:
+[examples/acme/eval-kit.html](examples/acme/eval-kit.html) is one bet, Acme's quote drafting, run end to end: the canonical brief from the landing-loop repo, quote-drafting traces and a sealed holdout. Every figure is illustrative. It starts from the record cost-budget-check wrote for the same bet ([examples/acme/upstream](examples/acme/upstream)), so the cost tile cites that figure, and writes only the `evals` key of [examples/acme/landing/quote-drafting.json](examples/acme/landing/quote-drafting.json) and a Markdown twin. Regenerate it from the repo root:
 
 ```bash
 python3 examples/acme/sample.py

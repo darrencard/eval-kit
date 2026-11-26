@@ -399,10 +399,13 @@ class SampleTest(unittest.TestCase):
             for name in ("eval-kit.html", "eval-kit.md", "landing/quote-drafting.json"):
                 self.assertEqual((Path(tmp) / name).read_bytes(), (acme / name).read_bytes(), name)
 
-    def test_sample_record_holds_only_the_evals_key(self):
-        record = json.loads((ROOT / "examples" / "acme" / "landing" / "quote-drafting.json").read_text(encoding="utf-8"))
-        self.assertEqual(set(record), {"schema", "bet", "brief", "evals"})
-        self.assertEqual(record["brief"]["path"], "examples/acme/briefs/quote-drafting.md")
+    def test_sample_record_adds_only_evals_to_the_cost_record(self):
+        acme = ROOT / "examples" / "acme"
+        record = json.loads((acme / "landing" / "quote-drafting.json").read_text(encoding="utf-8"))
+        upstream = json.loads((acme / "upstream" / "cost-budget-check.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(record), {"schema", "bet", "brief", "cost", "evals"})
+        self.assertEqual(record["cost"], upstream["cost"])  # read, cited, never rewritten
+        self.assertEqual(record["brief"]["sha256"], upstream["brief"]["sha256"])
 
 
 if __name__ == "__main__":

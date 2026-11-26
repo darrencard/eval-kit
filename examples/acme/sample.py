@@ -3,7 +3,8 @@
 
 Inputs, all illustrative (Acme is an invented company): the canonical briefs in briefs/ (copied from the landing-loop
 repo, unchanged), the quote-drafting traces and their holdout seal in traces/, and the calibrated judge scores from
-evals/fixtures/. The same inputs give the same bytes, so a chain script can call this and a test can check it.
+evals/fixtures/, and upstream/cost-budget-check.json, the record cost-budget-check v0.3.0 wrote for the same bet
+(copied unchanged), so the run cites its cost key the way a real loop would. The same inputs give the same bytes, so a chain script can call this and a test can check it.
 
 Usage, from the repo root:
   python3 examples/acme/sample.py [--into DIR]
@@ -35,6 +36,9 @@ def main(argv: list[str] | None = None) -> None:
     args = p.parse_args(argv)
     os.chdir(ROOT)  # paths written into the record are relative to the repo root
     into = Path(args.into).resolve() if args.into else ROOT / HERE
+    # Start from the record as cost-budget-check left it: eval-kit reads cost and writes only evals.
+    (into / "landing").mkdir(parents=True, exist_ok=True)
+    shutil.copy(HERE / "upstream" / "cost-budget-check.json", into / "landing" / f"{BET}.json")
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         # The seal is read beside the traces; copy both so a run never touches the committed seal.

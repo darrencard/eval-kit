@@ -4,7 +4,7 @@ description: Sets up and reports evals for one AI feature from traces or eval re
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Eval kit
