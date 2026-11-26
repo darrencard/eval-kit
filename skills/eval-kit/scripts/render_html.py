@@ -156,9 +156,9 @@ def render(report: dict, evals: dict | None = None) -> str:
             )
         )
     if latest["cost_per_task"] is not None:
-        cards.append(card("Cost per successful task", money(latest["cost_per_task"]), f"cited from cost-budget-check · {esc(led['cost_per_task'])}"))
+        cards.append(card("Cost per task", money(latest["cost_per_task"]), f"cited from cost-budget-check · {esc(led['cost_per_task'])}"))
     else:
-        cards.append(card("Cost per successful task", "not checked", "cost not checked: run cost-budget-check"))
+        cards.append(card("Cost per task", "not checked", "cost not checked: run cost-budget-check"))
     out.append(f'<div class="cards">{"".join(cards)}</div>')
 
     if evals:
@@ -185,7 +185,7 @@ def render(report: dict, evals: dict | None = None) -> str:
             out.append("<p>Each rate sits inside the other's 95% interval, so read the gain as direction, not size.</p>")
 
     out.append("<h2>By version</h2>")
-    tab = Table(("Version", "Run", "Held-out pass", "Development pass", "Without a person", "Cost per successful task"))
+    tab = Table(("Version", "Run", "Held-out pass", "Development pass", "Without a person", "Cost per task"))
     for r in rows:
         dev = f"{r['dev_passed']}/{r['dev_cases']} ({r['dev_pass_rate']:g}%)" if r["dev_pass_rate"] is not None else "not run"
         auto = f"{r['tasks_unassisted']}/{r['tasks']} ({r['autonomy_rate']:g}%)" if r["autonomy_rate"] is not None else "not run"

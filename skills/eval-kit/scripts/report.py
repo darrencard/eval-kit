@@ -2,7 +2,7 @@
 """The eval report for one AI feature, from a traces CSV. Computes every figure; the model writes none.
 
 Per version it computes the held-out pass rate, the development pass rate beside it, autonomy (production tasks
-finished with no person stepping in); cost per successful task is cited from cost-budget-check, never computed. It enforces the holdout split, checks the seal,
+finished with no person stepping in); cost per task is cited from cost-budget-check, never computed. It enforces the holdout split, checks the seal,
 reads the judge's calibration, decides whether the latest version may replace the one before, and clusters the
 failures it is allowed to read. Then it writes three files to --out:
 
@@ -219,7 +219,7 @@ def cite_cost(rows: list[dict], cost: dict | None, ledger: Ledger, warnings: lis
     latest["cost_per_task"] = round(float(fig["value"]), 4)
     window = fig.get("window") or {}
     latest["ledger"]["cost_per_task"] = ledger.add(
-        f"Cost per successful task ({latest['version']}), cited",
+        f"Cost per task ({latest['version']}), cited",
         latest["cost_per_task"],
         "$",
         f"cited from the cost key ({(cost or {}).get('tool', COST_OWNER)}), window {window.get('from')} to {window.get('to')}",
@@ -279,7 +279,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
             f"({latest['autonomy_rate']:g}%, 95% interval {latest['autonomy_ci'][0]:g} to {latest['autonomy_ci'][1]:g}) [{led['autonomy_rate']}]."
         )
     if latest["cost_per_task"] is not None:
-        out.append(f"Cost per successful task, cited from cost-budget-check: {fmt_money(latest['cost_per_task'])} [{led['cost_per_task']}].")
+        out.append(f"Cost per task, cited from cost-budget-check: {fmt_money(latest['cost_per_task'])} [{led['cost_per_task']}].")
     else:
         out.append(f"Cost: {COST_MISSING}.")
     out.append("")
@@ -293,7 +293,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
             out += ["Each rate sits inside the other's 95% interval, so read the gain as direction, not size. More held-out cases would measure it.", ""]
         if p["new_failures"]:
             out += [f"New held-out failures: {', '.join(p['new_failures'])}.", ""]
-    out += ["## By version", "", "| Version | Run | Held-out pass | Development pass | Without a person | Cost per successful task |"]
+    out += ["## By version", "", "| Version | Run | Held-out pass | Development pass | Without a person | Cost per task |"]
     out.append("|---|---|---|---|---|---|")
     for r in report["versions"]:
         out.append(

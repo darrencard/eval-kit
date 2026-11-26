@@ -248,7 +248,7 @@ class LoopRecord(Temp):
             "tool": "cost-budget-check 0.2.0",
             "cost_per_successful_task": {
                 "value": 0.0281,
-                "unit": "USD per successful task",
+                "unit": "USD per task",
                 "source": "usage.csv (sha256 abc)",
                 "window": {"from": "2026-11-01", "to": "2026-11-15"},
                 "as_of": "2026-11-16",

@@ -4,7 +4,7 @@ description: Sets up and reports evals for one AI feature from traces or eval re
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Eval kit
@@ -51,7 +51,7 @@ python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <
 - **The brief** is parsed by `scripts/vendor/landing_brief.py`, copied unchanged from the Leader Report at the commit in `vendor/PINS.json`. Never edit it or write a second parser. `python3 scripts/landing.py check BRIEF.md` says what the brief judges.
 - **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure reads meets target when it meets the brief's bar and below target when it does not, and the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is below target if either reads below; meets target only when both do. Never call an eval landed, watch or stalled: those are a bet's status, and only did-it-land sets them.
 - **The record.** It writes only the `evals` key and keeps every other key exactly. It refuses a record whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
-- **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per successful task from the record's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
+- **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per task from the record's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
 - **For leaders**, open `run/report.html`: one self-contained page in the Leader Report's style guide (fonts and colours read from `vendor/template.html`). `run/report.md` is its plain-text twin.
 
 ## Live data first
@@ -120,4 +120,4 @@ Add `--illustrative` only for sample data; it marks every ledger row Illustrativ
 
 ## What to say when you finish
 
-Lead with the status word and the held-out pass rate with its case count and interval, then autonomy beside it, each with its ledger row. Then cost per successful task as cited from cost-budget-check, or "cost not checked: run cost-budget-check". Then the promotion verdict, then the top failure cluster. State every warning. Stop there.
+Lead with the status word and the held-out pass rate with its case count and interval, then autonomy beside it, each with its ledger row. Then cost per task as cited from cost-budget-check, or "cost not checked: run cost-budget-check". Then the promotion verdict, then the top failure cluster. State every warning. Stop there.

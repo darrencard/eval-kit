@@ -9,7 +9,7 @@ A free Claude skill that turns your AI feature's traces into a pass rate and an 
 ## Install: paste this into Claude Code
 
 ```text
-Install the eval-kit Claude skill from https://github.com/darrencard/eval-kit (copy skills/eval-kit into ~/.claude/skills/eval-kit) and run its tests with python3 -m unittest discover -s evals. Then run it on my traces CSV with run.py: map my column names with --map, split the eval rows if they have no split, and use my target pass rate. Tell me the status, the held-out pass rate with its case count and interval, autonomy beside it, cost per successful task if cost-budget-check has written it, and the top failure cluster with its example traces.
+Install the eval-kit Claude skill from https://github.com/darrencard/eval-kit (copy skills/eval-kit into ~/.claude/skills/eval-kit) and run its tests with python3 -m unittest discover -s evals. Then run it on my traces CSV with run.py: map my column names with --map, split the eval rows if they have no split, and use my target pass rate. Tell me the status, the held-out pass rate with its case count and interval, autonomy beside it, cost per task if cost-budget-check has written it, and the top failure cluster with its example traces.
 ```
 
 ## Your first report in 2 minutes

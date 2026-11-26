@@ -559,7 +559,7 @@ class Report(Temp):
             "tool": "cost-budget-check 0.2.0",
             "cost_per_successful_task": {
                 "value": 0.0281,
-                "unit": "USD per successful task",
+                "unit": "USD per task",
                 "source": "usage.csv",
                 "window": {"from": "2026-11-01", "to": "2026-11-15"},
             },
@@ -669,8 +669,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.3.1")
-        self.assertIn('version: "0.3.1"', skill)
+        self.assertEqual(plugin["version"], "0.3.2")
+        self.assertIn('version: "0.3.2"', skill)
 
 
 if __name__ == "__main__":

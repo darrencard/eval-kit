@@ -25,7 +25,7 @@ One file per AI feature, as CSV or as JSONL (one JSON object per line; nested ke
 | Held-out pass rate | holdout eval rows that pass, over holdout eval rows, latest version |
 | Development pass rate | the same on development rows, shown beside the held-out rate, never as the headline |
 | Tasks finished without a person (autonomy) | production rows with `succeeded` true and `human_stepped_in` false, over production rows |
-| Cost per successful task | Not computed. Cited from the loop record's `cost` key (cost-budget-check owns it), or "cost not checked: run cost-budget-check" |
+| Cost per task | Not computed. Cited from the loop record's `cost` key (cost-budget-check owns it), or "cost not checked: run cost-budget-check" |
 
 `evals.csv` carries these as the Leader Report's `evals` columns: `cases` and `passed` (held-out), `tasks` and `tasks_unassisted` (production), and `cost_per_task` only when cited from the cost key (empty otherwise).
 
