@@ -1,6 +1,6 @@
 # Eval kit: honest evals for one feature
 
-A free Claude skill that turns your AI feature's traces into a pass rate, an autonomy rate and a cost per task you can defend.
+A free Claude skill that turns your AI feature's traces into a pass rate and an autonomy rate you can defend, judged against the feature's landing brief.
 
 **Why it matters:** an eval you tuned against tells you the prompt memorised its practice cases. This kit seals a holdout, tests the judge with cases built to be rejected, and refuses the claims the data can't carry.
 
@@ -32,9 +32,12 @@ The first run seals the holdout and writes blind calibration cases for your judg
 | Failure clusters | Groups failures by shared terms, with no categories set in advance, and 2 example traces each | Error analysis starts from what actually went wrong |
 | Autonomy with its pair | Tasks finished without a person, only beside the held-out pass rate; stalled names it when quality fell meanwhile | Autonomy can't rise unseen while quality falls |
 | CI gate | `--fail-on watch` or `stalled` exits 2 after writing the report | A regression stops the merge, with the reason to read |
+| Landing Loop | Judges pass rate or autonomy against the landing brief, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, five skills and the Leader Report reading the same figures |
+| Live data | Reads OpenAI Evals, Langfuse and PostHog LLM exports; CSV as the fallback | No retyping traces into a spreadsheet |
+| One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
 | Leader Report source | Writes `evals.csv` in the Product & Technology Leader Report's columns | One run feeds your board update |
 | Status | landed, watch or stalled, with every reason | One word a leader can act on |
 
 The fixture is Acme, an invented invoicing company for trades businesses, and its quote-drafting assistant. Every figure it produces is illustrative.
 
-Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.1, private until reviewed.
+Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.2, private until reviewed. The live-data readers are tested on documented response shapes, not yet on a live account.

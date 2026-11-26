@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+# The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
+EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
 # A judge score at or above this bar is a pass, when a row carries `score` instead of `passed`.
 PASS_AT = 0.6
 
@@ -250,7 +252,7 @@ class Ledger:
         self.illustrative = illustrative
         self.rows: list[dict[str, Any]] = []
 
-    def add(self, label: str, value: float | int | str, unit: str, basis: str) -> str:
+    def add(self, label: str, value: float | int | str, unit: str, basis: str, source: str | None = None) -> str:
         lid = f"L{len(self.rows) + 1}"
         self.rows.append(
             {
@@ -258,7 +260,7 @@ class Ledger:
                 "label": label,
                 "value": value,
                 "unit": unit,
-                "source": f"{self.source} (sha256 {self.sha})",
+                "source": source or f"{self.source} (sha256 {self.sha})",
                 "basis": basis,
                 "provenance": "Illustrative" if self.illustrative else "Measured",
             }

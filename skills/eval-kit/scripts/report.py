@@ -32,10 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import calibration  # noqa: E402
 import clusters  # noqa: E402
 import holdout  # noqa: E402
-from evalcore import EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
+import render_html  # noqa: E402
+from evalcore import EVALS_COLUMNS, EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
 
-# The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
-EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
 # A held-out rate this many points under target is stalled, not watch.
 STALL_MARGIN = 10.0
 # Development ahead of holdout by more than this many points reads as tuning to the practice cases.
@@ -54,6 +53,7 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
     row: dict[str, Any] = {
         "version": v,
         "run_at": max(t.run_at for t in rows),
+        "window_from": min(t.run_at for t in rows),
         "cases": len(held),
         "passed": sum(t.is_pass for t in held),
         "dev_cases": len(dev),
@@ -162,13 +162,23 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 f"{r['tasks_unassisted']} of {r['tasks']} production rows succeeded with human_stepped_in false; "
                 f"95% interval {r['autonomy_ci'][0]:g} to {r['autonomy_ci'][1]:g}",
             )
-        if r["cost_per_task"] is not None:
+        if r["cost_per_task"] is not None and not getattr(args, "loop", False):
             r["ledger"]["cost_per_task"] = ledger.add(
                 f"Cost per successful task ({v})",
                 r["cost_per_task"],
                 "$",
                 f"${r['cost_total']:g} cost_usd over {r['tasks_succeeded']} succeeded production rows",
             )
+
+    spend = getattr(args, "spend", None)
+    spend_row = None
+    loop = getattr(args, "loop", False)
+    if loop:
+        cite_cost(rows, getattr(args, "cost_key", None), ledger, warnings)
+        if spend:
+            warnings.append("--spend is ignored in the Landing Loop: spend and cost belong to cost-budget-check.")
+    elif spend:
+        spend_row = reconcile(Path(spend), traces, ledger, warnings)
 
     failed = clusters.failures(traces, latest["version"])
     held_failed = latest["cases"] - latest["passed"]
@@ -187,8 +197,55 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "clusters": clusters.cluster(failed, clusters.passes(traces, latest["version"])),
         "held_out_failures_unread": held_failed,
         "warnings": warnings,
+        "spend": spend_row,
         "ledger": ledger.rows,
     }
+
+
+COST_OWNER = "cost-budget-check"
+COST_MISSING = f"cost not checked: run {COST_OWNER}"
+
+
+def cite_cost(rows: list[dict], cost: dict | None, ledger: Ledger, warnings: list[str]) -> None:
+    """In the Landing Loop, cost per task is cost-budget-check's figure. Cite it from the record's `cost` key onto the
+    latest version, or print none. eval-kit's own trace costs are not shown, so there is one cost figure, not two."""
+    for r in rows:
+        r["cost_per_task"] = None
+    fig = (cost or {}).get("cost_per_successful_task") or ((cost or {}).get("lines", {}).get("cost_per_task") or {}).get("actual")
+    if not isinstance(fig, dict) or fig.get("value") is None:
+        warnings.append(COST_MISSING + ". No cost figure is printed until it writes the cost key.")
+        return
+    latest = rows[-1]
+    latest["cost_per_task"] = round(float(fig["value"]), 4)
+    window = fig.get("window") or {}
+    latest["ledger"]["cost_per_task"] = ledger.add(
+        f"Cost per successful task ({latest['version']}), cited",
+        latest["cost_per_task"],
+        "$",
+        f"cited from the cost key ({(cost or {}).get('tool', COST_OWNER)}), window {window.get('from')} to {window.get('to')}",
+        source=str(fig.get("source", COST_OWNER)),
+    )
+
+
+# Trace costs within this share of the provider's bill read as consistent.
+SPEND_TOLERANCE = 0.10
+
+
+def reconcile(path: Path, traces: list[Trace], ledger: Ledger, warnings: list[str]) -> dict[str, Any]:
+    """Provider-billed spend (from_traces.py spend) against the sum of trace costs in the same window."""
+    try:
+        bill = json.loads(path.read_text(encoding="utf-8"))
+        start, end, billed = bill["window"]["from"], bill["window"]["to"], float(bill["total_usd"])
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        raise EvalError(f"{path} is not a spend file from `from_traces.py spend`.") from None
+    traced = round(sum(t.cost_usd or 0.0 for t in traces if t.kind == "production" and start <= t.run_at <= end), 2)
+    lid = ledger.add(f"Provider-billed model spend, {start} to {end}", billed, "$", f"from {path.name}; trace costs in the window sum to ${traced:,.2f}")
+    if billed and abs(traced - billed) / billed > SPEND_TOLERANCE:
+        warnings.append(
+            f"trace costs (${traced:,.2f}) and the provider's bill (${billed:,.2f}) differ by more than {SPEND_TOLERANCE:.0%} for {start} to {end}. "
+            "Cost per task may miss calls the traces do not record, or the bill covers other features."
+        )
+    return {"window": {"from": start, "to": end}, "billed_usd": billed, "traced_usd": traced, "ledger": lid}
 
 
 def fmt_money(x: float) -> str:
@@ -207,15 +264,26 @@ def write_evals_csv(report: dict, path: Path) -> None:
             w.writerow(["" if r[c] is None else r[c] for c in EVALS_COLUMNS])
 
 
-def markdown(report: dict) -> str:
+def markdown(report: dict, evals: dict | None = None) -> str:
     latest = next(r for r in report["versions"] if r["version"] == report["latest"])
     led = latest["ledger"]
     out = [f"# Evals: {report['feature']}", ""]
     if report["illustrative"]:
         out += ["> Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.", ""]
-    why = "; ".join(report["reasons"])
-    out.append(f"**Status: {report['status']}.** {why[:1].upper()}{why[1:]}.")
+    status = evals["status"] if evals else report["status"]
+    why = "; ".join(evals["reasons"] if evals else report["reasons"])
+    out.append(f"**Status: {status}.** {why[:1].upper()}{why[1:]}.")
     out.append("")
+    if evals:
+        a = evals["against_brief"]
+        if a["judged"]:
+            v = "not computed" if a.get("value") is None else f"{a['value']:g}%"
+            out.append(f"Against the landing brief: **{a['status']}**. {a['metric']} is {v} against a bar of {a['bar']} by {a['by']}.")
+            if a.get("note"):
+                out.append(f"{a['note'][:1].upper()}{a['note'][1:]}.")
+        else:
+            out.append(f"Against the landing brief: {a['note']}")
+        out.append("")
     lo, hi = latest["pass_ci"]
     line = (
         f"Version {latest['version']} passes {latest['passed']} of {latest['cases']} held-out cases ({latest['pass_rate']:g}%, "
@@ -299,6 +367,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--illustrative", action="store_true", help="mark every figure Illustrative (sample data)")
     p.add_argument("--map", action="append", metavar="SCHEMA=YOURS", help="read your export's column as a schema column; repeat per column")
     p.add_argument("--fail-on", choices=("watch", "stalled"), help="exit 2 when the status is this bad or worse, for a CI gate")
+    p.add_argument("--spend", help="a spend file from `from_traces.py spend`, to check trace costs against the bill")
     args = p.parse_args(argv)
     report = write(build(args), Path(args.out))
     gate(report, args.fail_on)
@@ -307,19 +376,23 @@ def main(argv: list[str] | None = None) -> None:
 FAIL_ORDER = {"landed": 0, "watch": 1, "stalled": 2}
 
 
-def gate(report: dict, fail_on: str | None) -> None:
+def gate(report: dict, fail_on: str | None, status: str | None = None) -> None:
     """For CI: exit 2 when the status is at or past --fail-on. The files are written first, so the run can be read."""
-    if fail_on and FAIL_ORDER[report["status"]] >= FAIL_ORDER[fail_on]:
-        print(f"report: failing the gate, {report['latest']} is {report['status']} (--fail-on {fail_on})")
+    status = status or report["status"]
+    if fail_on and FAIL_ORDER[status] >= FAIL_ORDER[fail_on]:
+        print(f"report: failing the gate, {report['latest']} is {status} (--fail-on {fail_on})")
         raise SystemExit(2)
 
 
-def write(report: dict, out: Path) -> dict:
+def write(report: dict, out: Path, evals: dict | None = None) -> dict:
+    """evals.csv, report.json, report.html (for leaders) and report.md (its plain-text twin)."""
     out.mkdir(parents=True, exist_ok=True)
     write_evals_csv(report, out / "evals.csv")
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    (out / "report.md").write_text(markdown(report), encoding="utf-8")
-    print(f"report: {report['latest']} is {report['status']}; wrote evals.csv, report.json and report.md to {out}")
+    (out / "report.md").write_text(markdown(report, evals), encoding="utf-8")
+    (out / "report.html").write_text(render_html.render(report, evals), encoding="utf-8")
+    status = evals["status"] if evals else report["status"]
+    print(f"report: {report['latest']} is {status}; wrote evals.csv, report.json, report.html and report.md to {out}")
     for w in report["warnings"]:
         print(f"warning: {w}")
     return report

@@ -1,6 +1,6 @@
 [project]
 name = "eval-kit"
-version = "0.1.0"
+version = "0.2.0"
 description = "A skill that sets up and reports evals for one AI feature from a traces CSV."
 requires-python = ">=3.11"
 # Standard library only, on purpose: the scripts run inside sandboxes that cannot install packages.
@@ -9,6 +9,8 @@ dependencies = []
 [tool.ruff]
 line-length = 160
 target-version = "py311"
+# Copied byte for byte from the Leader Report at a pinned commit (see vendor/PINS.json); linted there, never edited here.
+extend-exclude = ["skills/eval-kit/scripts/vendor"]
 
 [tool.ruff.lint]
 # E, F: errors and unused names. I: import order. B: likely bugs. UP: old syntax. SIM: needless complexity. S: security.
@@ -17,3 +19,5 @@ select = ["E", "F", "I", "B", "UP", "SIM", "S"]
 [tool.ruff.lint.per-file-ignores]
 # The fixture generator and tests draw synthetic rows with random; nothing they make is a secret.
 "evals/**" = ["S311"]
+# The page's CSS and table rows read best one rule or row per line.
+"skills/eval-kit/scripts/render_html.py" = ["E501"]

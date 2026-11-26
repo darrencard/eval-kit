@@ -1,0 +1,30 @@
+{
+  "repository": "github.com/darrencard/product-engineering-update",
+  "commit": "366da9bfede540ec19e9164ad5ad17ce28c1d06b",
+  "files": {
+    "landing_brief.py": {
+      "from": "skills/landing-brief/scripts/landing_brief.py",
+      "sha256": "2d13573543c74ebe1bf001b97287287474a0ec298f34709a1bbfc643be051948"
+    },
+    "from_ai_spend.py": {
+      "from": "skills/product-engineering-update/scripts/from_ai_spend.py",
+      "sha256": "4d29c095942f6613837ce5e04b986313faaea817e0db9cdd7a57becf40544536"
+    },
+    "from_posthog.py": {
+      "from": "skills/product-engineering-update/scripts/from_posthog.py",
+      "sha256": "73fc0ad5ac35289ec16ce09d92ae8e22286bbb0229ffed1465c11efa2f703c4e"
+    },
+    "collect.py": {
+      "from": "skills/product-engineering-update/scripts/collect.py",
+      "sha256": "f58d3cd6db1fc7a5e73441618ed94460189aeb724be1c42934313d23d5bd93c4"
+    },
+    "convert.py": {
+      "from": "skills/product-engineering-update/scripts/convert.py",
+      "sha256": "f1d055c02e29c67690f3caac7b7eb3213afab20042ff78a8080ebf172b183a55"
+    },
+    "template.html": {
+      "from": "skills/product-engineering-update/assets/template.html",
+      "sha256": "e5740431ab5269606709d352d3d253325df740830e8316f06478873e71d430d0"
+    }
+  }
+}

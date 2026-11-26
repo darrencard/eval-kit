@@ -461,7 +461,7 @@ class Report(Temp):
         cli = ["--out", str(out), "--feature", "Quote drafting", "--seal", str(SEAL), "--judge-scores", str(JUDGE), "--target", "80", "--illustrative"]
         with redirect_stdout(io.StringIO()):
             report.main([str(TRACES), *cli])
-        self.assertEqual(sorted(p.name for p in out.iterdir()), ["evals.csv", "report.json", "report.md"])
+        self.assertEqual(sorted(p.name for p in out.iterdir()), ["evals.csv", "report.html", "report.json", "report.md"])
 
     def test_every_figure_has_a_ledger_row_and_is_illustrative(self) -> None:
         r = self.run_report()
@@ -647,8 +647,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.1.0")
-        self.assertIn('version: "0.1.0"', skill)
+        self.assertEqual(plugin["version"], "0.2.0")
+        self.assertIn('version: "0.2.0"', skill)
 
 
 if __name__ == "__main__":

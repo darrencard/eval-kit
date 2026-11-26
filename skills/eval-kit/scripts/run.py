@@ -5,9 +5,13 @@ judge scored the cases, then run the report.
 The first run seals the holdout and says so. Commit the seal file beside your eval set: from then on any change to a
 held-out case blocks the report until someone reseals on purpose.
 
+With --brief, the evals are judged against the feature's landing brief too; with --bet as well, the result is
+written to the `evals` key of landing/<bet>.json, the Landing Loop record, and nothing else in it changes.
+
 Usage:
   python3 scripts/run.py TRACES.csv --feature "Quote drafting" --target 85 [--out run] [--map SCHEMA=YOURS ...]
       [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on watch|stalled] [--illustrative]
+      [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]] [--spend spend.json]
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import calibration  # noqa: E402
 import holdout  # noqa: E402
+import landing  # noqa: E402
 import report  # noqa: E402
 from evalcore import EvalError, load_traces, parse_map  # noqa: E402
 
@@ -41,7 +46,16 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--calibration-cases")
     p.add_argument("--fail-on", choices=("watch", "stalled"))
     p.add_argument("--illustrative", action="store_true")
+    p.add_argument("--spend", help="a spend file from `from_traces.py spend`")
+    p.add_argument("--brief", help="the feature's landing brief (Markdown, or the Linear project JSON)")
+    p.add_argument("--bet", help="the bet's slug; with --brief, writes the evals key of LANDING/<bet>.json")
+    p.add_argument("--landing", default="landing", help="the loop record folder (default landing)")
+    p.add_argument("--as-of", help="YYYY-MM-DD for the record; defaults to the latest run date")
     args = p.parse_args(argv)
+    if args.bet and not args.brief:
+        raise EvalError("--bet writes the loop record, which is judged against a brief. Pass --brief too.")
+    brief = landing.read_brief(Path(args.brief)) if args.brief else None
+    target = landing.target_from(brief, args.target) if brief else args.target
 
     src = Path(args.traces)
     traces = load_traces(src, parse_map(args.map))
@@ -75,13 +89,24 @@ def main(argv: list[str] | None = None) -> None:
         seal=str(seal_path),
         judge_scores=args.judge_scores,
         calibration_cases=args.calibration_cases,
-        target=args.target,
+        target=target,
         illustrative=args.illustrative,
         map=args.map,
+        spend=args.spend,
+        loop=bool(args.bet),
+        cost_key=landing.read_cost(Path(args.landing), args.bet) if args.bet else None,
     )
-    result = report.write(report.build(ns), out)
-    print(f"run: read {out / 'report.md'} first. Feed {out / 'evals.csv'} to the Leader Report as its evals source.")
-    report.gate(result, args.fail_on)
+    built = report.build(ns)
+    evals = None
+    if brief:
+        as_of = args.as_of or built["versions"][-1]["run_at"]
+        evals = landing.evals_key(built, brief, as_of)
+    report.write(built, out, evals)
+    if evals and args.bet:
+        path = landing.write_record(Path(args.landing), args.bet, Path(args.brief), evals)
+        print(f"run: wrote the evals key of {path}; every other key is as it was.")
+    print(f"run: read {out / 'report.html'} (or report.md). Feed {out / 'evals.csv'} to the Leader Report as its evals source.")
+    report.gate(built, args.fail_on, evals["status"] if evals else None)
 
 
 if __name__ == "__main__":

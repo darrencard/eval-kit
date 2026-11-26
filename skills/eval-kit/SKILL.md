@@ -1,10 +1,10 @@
 ---
 name: eval-kit
-description: Sets up and reports evals for one AI feature from a traces or eval-results CSV. Computes the held-out pass rate, autonomy (production tasks finished without a person) and cost per successful task in code; enforces and seals a development and holdout split; checks the judge against calibration cases, most meant to be rejected; decides whether a new version may replace the old one; clusters failure modes with no predefined taxonomy; and writes an evals.csv the Product & Technology Leader Report reads. Use when the user asks to set up evals, report eval results, compute a pass rate or autonomy rate, split or seal a holdout set, calibrate an LLM judge, compare two prompt or model versions, cluster or read failures from traces, or prepare the evals source for the Leader Report. Not for building the model, writing prompts or general data analysis.
+description: Sets up and reports evals for one AI feature from traces or eval results (OpenAI Evals, Langfuse, PostHog LLM analytics, or CSV), and judges them against the feature's landing brief. Computes the held-out pass rate, autonomy (production tasks finished without a person) and cost per successful task in code; enforces and seals a development and holdout split; checks the judge against calibration cases, most meant to be rejected; decides whether a new version may replace the old one; clusters failure modes with no predefined taxonomy; writes the evals key of the Landing Loop record and an evals.csv the Product & Technology Leader Report reads; and renders one HTML page for leaders. Use when the user asks to set up evals, report eval results, compute a pass rate or autonomy rate, split or seal a holdout set, calibrate an LLM judge, compare two prompt or model versions, cluster or read failures from traces, or prepare the evals source for the Leader Report. Not for building the model, writing prompts or general data analysis.
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Eval kit
@@ -39,6 +39,24 @@ If their columns have other names, add `--map SCHEMA=THEIRS` per column (for exa
 For a CI gate, add `--fail-on stalled` (or `watch`): the run writes its files, then exits 2. A ready job is in `references/ci-gate.md`.
 
 The traces can be CSV or JSONL (one JSON object per line, as most trace tools export). Nested JSON keys read as dotted columns, so `--map version=metadata.version` works. `kind` also accepts test, offline, prod, live and online.
+
+## In the Landing Loop
+
+eval-kit is step 3 (Build) of the Landing Loop: five skills and the Leader Report on one landing brief, sharing one record per bet, `landing/<bet>.json`.
+
+```bash
+python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <bet-slug> --out run
+```
+
+- **The brief** is parsed by `scripts/vendor/landing_brief.py`, copied unchanged from the Leader Report at the commit in `vendor/PINS.json`. Never edit it or write a second parser. `python3 scripts/landing.py check BRIEF.md` says what the brief judges.
+- **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure is judged with the brief's own rule (landed when the bar is met, watch when moving the right way, stalled otherwise), and the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is the worse of the eval status and the brief's.
+- **The record.** It writes only the `evals` key and keeps every other key exactly. It refuses a record whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
+- **Cost belongs to cost-budget-check.** In the loop, eval-kit computes no cost figure. It cites cost per successful task from the record's `cost` key, or says "cost not checked: run cost-budget-check" and prints none.
+- **For leaders**, open `run/report.html`: one self-contained page in the Leader Report's style guide (fonts and colours read from `vendor/template.html`). `run/report.md` is its plain-text twin.
+
+## Live data first
+
+Read traces from the tools that hold them before asking for a CSV: `python3 scripts/from_traces.py traces --out traces.csv` with `--openai-eval-items FILE --version V` (OpenAI Evals), `--langfuse-traces FILE --langfuse-scores FILE`, or `--posthog-query FILE`. Shapes and the PostHog query are in `references/live-data.md`. Outside the loop, `from_traces.py spend` reads Anthropic and OpenAI cost exports with the Leader Report's own `from_ai_spend.py`, and `report.py --spend` checks trace costs against the bill.
 
 ## Workflow
 
@@ -76,7 +94,7 @@ Needed whenever eval rows carry `score` rather than `passed`. `python3 scripts/c
 python3 scripts/report.py traces.csv --out run --feature "<feature>" --seal holdout.seal.json --judge-scores run/judge_scores.csv --target <percent>
 ```
 
-It writes `run/evals.csv`, `run/report.json` and `run/report.md`, or refuses and writes nothing. The status for the latest version is one of:
+It writes `run/evals.csv`, `run/report.json`, `run/report.html` and `run/report.md`, or refuses and writes nothing. The status for the latest version is one of:
 
 | Status | When |
 |---|---|
