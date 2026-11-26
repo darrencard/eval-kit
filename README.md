@@ -9,7 +9,7 @@ A free Claude skill that turns your AI feature's traces into a pass rate and an 
 ## Install: paste this into Claude Code
 
 ```text
-Install the eval-kit Claude skill from https://github.com/darrencard/eval-kit (copy skills/eval-kit into ~/.claude/skills/eval-kit) and run its tests with python3 -m unittest discover -s evals. Then run it on my traces CSV with run.py: map my column names with --map, split the eval rows if they have no split, and use my target pass rate. Tell me the status, the held-out pass rate with its case count and interval, autonomy beside it, cost per successful task and the top failure cluster with its example traces.
+Install the eval-kit Claude skill from https://github.com/darrencard/eval-kit (copy skills/eval-kit into ~/.claude/skills/eval-kit) and run its tests with python3 -m unittest discover -s evals. Then run it on my traces CSV with run.py: map my column names with --map, split the eval rows if they have no split, and use my target pass rate. Tell me the status, the held-out pass rate with its case count and interval, autonomy beside it, cost per successful task if cost-budget-check has written it, and the top failure cluster with its example traces.
 ```
 
 ## Your first report in 2 minutes
@@ -35,6 +35,7 @@ The first run seals the holdout and writes blind calibration cases for your judg
 | Landing Loop | Judges pass rate or autonomy against the landing brief, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, five skills and the Leader Report reading the same figures |
 | Live data | Reads OpenAI Evals, Langfuse and PostHog LLM exports; CSV as the fallback | No retyping traces into a spreadsheet |
 | One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
+| One owner for cost | Computes no cost of its own; cites cost per task from cost-budget-check's `cost` key, or says "cost not checked: run cost-budget-check" | One cost figure across the loop, never two that disagree |
 | Leader Report source | Writes `evals.csv` in the Product & Technology Leader Report's columns | One run feeds your board update |
 | Status | landed, watch or stalled, with every reason | One word a leader can act on |
 

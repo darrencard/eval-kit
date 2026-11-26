@@ -5,9 +5,8 @@ Read traces from the tools that already hold them. `scripts/from_traces.py trace
 | Source | What to save | Becomes |
 |---|---|---|
 | OpenAI Evals | `GET /v1/evals/{eval_id}/runs/{run_id}/output_items`, one file per run, with `--version` per file | Eval rows. Case id is the dataset item's `id` (or its index), so a case keeps its id across runs. Passes when every grader passed. `split` comes from the dataset item when it has one |
-| Langfuse | `GET /api/public/traces` and `GET /api/public/scores` | Production rows. `succeeded` and `human_stepped_in` are two scores you record on each trace (rename with `--success-score`, `--human-score`); cost is `totalCost` |
+| Langfuse | `GET /api/public/traces` and `GET /api/public/scores` | Production rows. `succeeded` and `human_stepped_in` are two scores you record on each trace (rename with `--success-score`, `--human-score`); `totalCost` is kept in `cost_usd` for cost-budget-check; eval-kit computes no cost |
 | PostHog LLM analytics | The result of the HogQL query below | Production rows |
-| Anthropic, OpenAI cost reports | The Admin API cost report and `/v1/organization/costs`, read by the Leader Report's own `from_ai_spend.py` (vendored) | `from_traces.py spend`: provider-billed spend in a window. `report.py --spend` checks trace costs against it, outside the Landing Loop |
 
 ## PostHog query
 
@@ -27,7 +26,9 @@ WHERE event = '$ai_generation' AND timestamp >= '2026-11-01'
 GROUP BY id, version
 ```
 
-`prompt_version`, `task_succeeded` and `human_edited` are properties your app sends; use your own names in the query and keep the aliases.
+`prompt_version`, `task_succeeded` and `human_edited` are properties your app sends; use your own names in the query and keep the aliases. `cost_usd` is optional and kept for cost-budget-check.
+
+Provider bills (Anthropic and OpenAI cost reports) are cost-budget-check's to read, not eval-kit's.
 
 ## Tested against
 

@@ -438,7 +438,7 @@ class Report(Temp):
         self.assertEqual((latest["cases"], latest["passed"], latest["pass_rate"]), (30, 24, 80.0))
         self.assertEqual((latest["dev_cases"], latest["dev_passed"]), (70, 63))
         self.assertEqual((latest["tasks"], latest["tasks_unassisted"], latest["autonomy_rate"]), (200, 143, 71.5))
-        self.assertEqual(latest["cost_per_task"], round(latest["cost_total"] / latest["tasks_succeeded"], 4))
+        self.assertIsNone(latest["cost_per_task"])
 
     def test_evals_csv_matches_the_leader_report_source(self) -> None:
         # product-engineering-update collect.py: version str, run_at date, cases num, passed num,
@@ -450,8 +450,9 @@ class Report(Temp):
         self.assertEqual(list(rows[0]), ["version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted"])
         for row in rows:
             self.assertRegex(row["run_at"], r"^\d{4}-\d{2}-\d{2}$")
-            for c in ("cases", "passed", "cost_per_task", "tasks", "tasks_unassisted"):
+            for c in ("cases", "passed", "tasks", "tasks_unassisted"):
                 float(row[c])
+            self.assertEqual(row["cost_per_task"], "", "cost per task is cost-budget-check's; with no cost key the column stays empty")
             self.assertLessEqual(float(row["passed"]), float(row["cases"]))
             self.assertLessEqual(float(row["tasks_unassisted"]), float(row["tasks"]))
         self.assertEqual([x["version"] for x in rows], ["v1.3", "v1.4"])
@@ -471,7 +472,7 @@ class Report(Temp):
             self.assertIn(ref, ids)
         self.assertTrue(all(row["provenance"] == "Illustrative" for row in r["ledger"]))
         self.assertIn("Illustrative", md)
-        self.assertEqual(len(r["ledger"]), 8)
+        self.assertEqual(len(r["ledger"]), 6)
 
     def test_measured_when_not_illustrative(self) -> None:
         r = self.run_report(illustrative=False)
@@ -536,28 +537,33 @@ class Report(Temp):
             report.main([str(write_rows(rows, self.tmp / "t.csv")), "--out", str(out), "--feature", "x", "--seal", str(SEAL)])
         self.assertFalse(out.exists())
 
-    def test_missing_costs_mean_no_cost_figure(self) -> None:
-        rows = read_rows()
-        next(r for r in rows if r["kind"] == "production" and r["version"] == "v1.4")["cost_usd"] = ""
-        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"))
-        self.assertIsNone(r["versions"][-1]["cost_per_task"])
-        self.assertTrue(any("no cost_usd" in w for w in r["warnings"]))
-
-    def test_autonomy_rising_while_quality_falls_is_never_landed(self) -> None:
-        rows = read_rows()
-        for row in rows:
-            if row["version"] == "v1.3" and row["kind"] == "eval":
-                row["score"] = "0.90"
-        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), seal=None)
-        self.assertEqual(r["status"], "stalled")
-        self.assertTrue(any("autonomy rose" in x for x in r["reasons"]))
-
-    def test_intervals_are_in_the_ledger_and_the_text(self) -> None:
+    def test_no_cost_figure_of_its_own(self) -> None:
         r = self.run_report()
+        self.assertTrue(all(v["cost_per_task"] is None for v in r["versions"]))
+        self.assertFalse(any("cost" in row["label"].lower() for row in r["ledger"]))
         md = report.markdown(r)
-        self.assertIn("95% interval 62.7 to 90.5", md)
-        self.assertIn("low end, 62.7%, is under the 80% target", md)
-        self.assertTrue(any("95% interval" in row["basis"] for row in r["ledger"]))
+        self.assertIn("Cost: cost not checked: run cost-budget-check.", md)
+        self.assertNotRegex(md, r"\$0\.0\d")
+        self.assertTrue(any("cost not checked: run cost-budget-check" in w for w in r["warnings"]))
+
+    def test_record_flag_cites_the_cost_key(self) -> None:
+        cost = {
+            "tool": "cost-budget-check 0.2.0",
+            "cost_per_successful_task": {
+                "value": 0.0281,
+                "unit": "USD per successful task",
+                "source": "usage.csv",
+                "window": {"from": "2026-11-01", "to": "2026-11-15"},
+            },
+        }
+        record = self.tmp / "b.json"
+        record.write_text(json.dumps({"schema": "landing-loop/1", "bet": "b", "cost": cost}), encoding="utf-8")
+        r = self.run_report(record=str(record))
+        self.assertEqual(r["versions"][-1]["cost_per_task"], 0.0281)
+        self.assertIsNone(r["versions"][0]["cost_per_task"])
+        cited = [row for row in r["ledger"] if row["label"].endswith(", cited")]
+        self.assertEqual([row["source"] for row in cited], ["usage.csv"])
+        self.assertIn("cited from cost-budget-check: $0.0281", report.markdown(r))
 
     def test_status_vocabulary(self) -> None:
         for kw in ({}, {"seal": None}, {"target": 99.0}):

@@ -11,7 +11,7 @@ written to the `evals` key of landing/<bet>.json, the Landing Loop record, and n
 Usage:
   python3 scripts/run.py TRACES.csv --feature "Quote drafting" --target 85 [--out run] [--map SCHEMA=YOURS ...]
       [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on watch|stalled] [--illustrative]
-      [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]] [--spend spend.json]
+      [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]]
 """
 
 from __future__ import annotations
@@ -46,7 +46,6 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--calibration-cases")
     p.add_argument("--fail-on", choices=("watch", "stalled"))
     p.add_argument("--illustrative", action="store_true")
-    p.add_argument("--spend", help="a spend file from `from_traces.py spend`")
     p.add_argument("--brief", help="the feature's landing brief (Markdown, or the Linear project JSON)")
     p.add_argument("--bet", help="the bet's slug; with --brief, writes the evals key of LANDING/<bet>.json")
     p.add_argument("--landing", default="landing", help="the loop record folder (default landing)")
@@ -92,8 +91,6 @@ def main(argv: list[str] | None = None) -> None:
         target=target,
         illustrative=args.illustrative,
         map=args.map,
-        spend=args.spend,
-        loop=bool(args.bet),
         cost_key=landing.read_cost(Path(args.landing), args.bet) if args.bet else None,
     )
     built = report.build(ns)

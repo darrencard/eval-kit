@@ -154,13 +154,16 @@ def evals_key(report: dict, brief: landing_brief.Brief, as_of: str) -> dict[str,
 
 
 def cost_note(report: dict) -> dict[str, Any]:
-    cited = any(r["label"].endswith(", cited") for r in report["ledger"])
+    cited = any(r["label"].endswith(", cited") for r in report["ledger"])  # set only by report.cite_cost
     return {"owner": "cost-budget-check", "cited": cited, "note": "cited from the cost key" if cited else "cost not checked: run cost-budget-check"}
 
 
 def read_cost(folder: Path, bet: str) -> dict | None:
     """The record's `cost` key, written by cost-budget-check, or None. Read only; never written here."""
-    path = folder / f"{bet}.json"
+    return read_record_cost(folder / f"{bet}.json")
+
+
+def read_record_cost(path: Path) -> dict | None:
     if not path.exists():
         return None
     try:

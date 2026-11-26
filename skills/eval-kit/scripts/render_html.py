@@ -134,14 +134,9 @@ def render(report: dict, evals: dict | None = None) -> str:
             )
         )
     if latest["cost_per_task"] is not None:
-        prior_cost = before["cost_per_task"] if before else None
-        cards.append(
-            card(
-                "Cost per successful task",
-                money(latest["cost_per_task"]),
-                (f"{money(prior_cost)} → " if prior_cost is not None else "") + f"<b>{money(latest['cost_per_task'])}</b><br>{esc(led['cost_per_task'])}",
-            )
-        )
+        cards.append(card("Cost per successful task", money(latest["cost_per_task"]), f"cited from cost-budget-check · {esc(led['cost_per_task'])}"))
+    else:
+        cards.append(card("Cost per successful task", "not checked", "cost not checked: run cost-budget-check"))
     out.append(f'<div class="cards">{"".join(cards)}</div>')
 
     if evals:
@@ -173,7 +168,7 @@ def render(report: dict, evals: dict | None = None) -> str:
     for r in rows:
         dev = f"{r['dev_passed']}/{r['dev_cases']} ({r['dev_pass_rate']:g}%)" if r["dev_pass_rate"] is not None else "not run"
         auto = f"{r['tasks_unassisted']}/{r['tasks']} ({r['autonomy_rate']:g}%)" if r["autonomy_rate"] is not None else "not run"
-        cost = money(r["cost_per_task"]) if r["cost_per_task"] is not None else "not computed"
+        cost = money(r["cost_per_task"]) + " (cited)" if r["cost_per_task"] is not None else "not checked"
         out.append(
             f'<tr><td class="n">{esc(r["version"])}</td><td class="n">{esc(r["run_at"])}</td>'
             f'<td class="n">{r["passed"]}/{r["cases"]} ({r["pass_rate"]:g}%)</td><td class="n">{esc(dev)}</td><td class="n">{esc(auto)}</td><td class="n">{esc(cost)}</td></tr>'

@@ -9,10 +9,9 @@ Usage:
                                (GET /api/public/scores); production tasks
     --posthog-query FILE       a PostHog HogQL result ({"columns", "results"}) over $ai_trace or $ai_generation
                                events; production tasks. The query is in references/live-data.md
-  python3 scripts/from_traces.py spend --from YYYY-MM-DD --to YYYY-MM-DD --out spend.json
-      [--anthropic-cost FILE ...] [--openai-costs FILE ...]
-                               provider-billed model spend in the window, read by the Leader Report's own
-                               from_ai_spend.py (vendored), to check trace costs against the invoice
+
+Cost: rows keep a trace's cost in `cost_usd` for cost-budget-check to read. eval-kit itself computes no cost
+figure; cost per task belongs to cost-budget-check (Landing Loop contract, one owner per figure).
 
 Saved responses are read as they stand. A response with no field this needs is refused with what is missing;
 nothing is guessed. Eval items keep a `split` from the dataset item when it has one; otherwise run
@@ -33,8 +32,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "vendor"))
 
-import from_ai_spend  # noqa: E402  (vendored, unchanged; see vendor/PINS.json)
-import from_posthog  # noqa: E402
+import from_posthog  # noqa: E402  (vendored, unchanged; see vendor/PINS.json)
 from evalcore import COLUMNS, EvalError  # noqa: E402
 
 Json = dict[str, Any]
@@ -201,17 +199,6 @@ def write_csv(rows: list[Json], path: Path) -> None:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
 
 
-def spend(anthropic: list[str], openai: list[str], start: str, end: str) -> Json:
-    a, b = datetime.date.fromisoformat(start), datetime.date.fromisoformat(end)
-    out: Json = {"window": {"from": start, "to": end}, "vendors": {}}
-    if anthropic:
-        out["vendors"]["anthropic"] = {"usd": from_ai_spend.api_spend(anthropic, "anthropic", a, b), "source": [Path(p).name for p in anthropic]}
-    if openai:
-        out["vendors"]["openai"] = {"usd": from_ai_spend.api_spend(openai, "openai", a, b), "source": [Path(p).name for p in openai]}
-    out["total_usd"] = round(sum(v["usd"] for v in out["vendors"].values()), 2)
-    return out
-
-
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -224,21 +211,7 @@ def main(argv: list[str] | None = None) -> None:
     t.add_argument("--success-score", default="succeeded")
     t.add_argument("--human-score", default="human_stepped_in")
     t.add_argument("--posthog-query", action="append", default=[])
-    s = sub.add_parser("spend")
-    s.add_argument("--from", dest="start", required=True)
-    s.add_argument("--to", dest="end", required=True)
-    s.add_argument("--anthropic-cost", action="append", default=[])
-    s.add_argument("--openai-costs", action="append", default=[])
-    s.add_argument("--out", required=True)
     args = p.parse_args(argv)
-
-    if args.cmd == "spend":
-        if not args.anthropic_cost and not args.openai_costs:
-            raise EvalError("spend needs --anthropic-cost or --openai-costs files.")
-        result = spend(args.anthropic_cost, args.openai_costs, args.start, args.end)
-        Path(args.out).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-        print(f"from_traces: provider-billed model spend ${result['total_usd']:,.2f} for {args.start} to {args.end}; wrote {args.out}")
-        return
 
     rows: list[Json] = []
     if args.openai_eval_items:

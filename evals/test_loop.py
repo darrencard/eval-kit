@@ -9,7 +9,7 @@ Groups:
   AgainstBrief  pass rate and autonomy judged against the brief's definition of good, with its own rule.
   LoopRecord    only the `evals` key of landing/<bet>.json is written; every other key is kept.
   Page          one self-contained HTML page in the style guide, every trace text escaped.
-  LiveData      OpenAI Evals, Langfuse and PostHog exports to traces; provider spend checked against traces.
+  LiveData      OpenAI Evals, Langfuse and PostHog exports to traces.
 
 Standard library only. Runs on Python 3.11 or later.
 """
@@ -51,7 +51,7 @@ from evalcore import EVALS_COLUMNS, EvalError, load_traces  # noqa: E402
 
 def build(**kw) -> dict:
     base = {"traces": str(TRACES), "feature": "Quote drafting", "seal": str(SEAL), "judge_scores": str(JUDGE), "calibration_cases": None}
-    base.update({"target": 80.0, "illustrative": True, "map": None, "spend": None})
+    base.update({"target": 80.0, "illustrative": True, "map": None})
     base.update(kw)
     return report.build(argparse.Namespace(**base))
 
@@ -125,7 +125,7 @@ class AgainstBrief(Temp):
 
     def test_every_figure_carries_the_contract_fields(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF), "2026-11-26")
-        self.assertEqual(len(key["figures"]), 8)
+        self.assertEqual(len(key["figures"]), 6)
         for name, f in key["figures"].items():
             with self.subTest(name=name):
                 self.assertTrue({"value", "unit", "source", "window", "as_of"} <= set(f))
@@ -279,6 +279,11 @@ class Page(Temp):
         self.assertRegex(text, r'var\(--landed\)"></span>landed')
         self.assertIn("Illustrative", text)
 
+    def test_no_cost_figure_without_the_cost_key(self) -> None:
+        text = self.page()
+        self.assertIn("cost not checked: run cost-budget-check", text)
+        self.assertNotRegex(text, r"\$0\.0\d")
+
     def test_trace_text_is_escaped(self) -> None:
         text = TRACES.read_text(encoding="utf-8").replace("Chase went", "<script>alert(1)</script> Chase went")
         path = self.tmp / "t.csv"
@@ -370,26 +375,6 @@ class LiveData(Temp):
             from_traces.main(["traces", "--out", str(self.tmp / "lf.csv"), "--langfuse-traces", str(lf_t), "--langfuse-scores", str(lf_s)])
         self.assertEqual(len(load_traces(out)), 6)
         self.assertEqual({t.kind for t in load_traces(self.tmp / "lf.csv")}, {"production"})
-
-    def test_provider_spend_via_the_vendored_reader(self) -> None:
-        anthropic = self.write(
-            "anthropic.json",
-            {
-                "data": [
-                    {"starting_at": "2026-11-15T00:00:00Z", "results": [{"amount": "512.5", "currency": "USD"}]},
-                    {"starting_at": "2026-12-15T00:00:00Z", "results": [{"amount": "999"}]},
-                ]
-            },
-        )
-        result = from_traces.spend([str(anthropic)], [], "2026-11-01", "2026-11-30")
-        self.assertEqual(result["total_usd"], 5.12)
-
-    def test_report_checks_trace_costs_against_the_bill(self) -> None:
-        bill = self.write("spend.json", {"window": {"from": "2026-11-15", "to": "2026-11-15"}, "total_usd": 9.0})
-        r = build(spend=str(bill))
-        self.assertGreater(r["spend"]["traced_usd"], 0)
-        self.assertTrue(any("differ by more than 10%" in w for w in r["warnings"]))
-        self.assertTrue(any(row["label"].startswith("Provider-billed") for row in r["ledger"]))
 
 
 if __name__ == "__main__":

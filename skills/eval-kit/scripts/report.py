@@ -2,7 +2,7 @@
 """The eval report for one AI feature, from a traces CSV. Computes every figure; the model writes none.
 
 Per version it computes the held-out pass rate, the development pass rate beside it, autonomy (production tasks
-finished with no person stepping in) and cost per successful task. It enforces the holdout split, checks the seal,
+finished with no person stepping in); cost per successful task is cited from cost-budget-check, never computed. It enforces the holdout split, checks the seal,
 reads the judge's calibration, decides whether the latest version may replace the one before, and clusters the
 failures it is allowed to read. Then it writes three files to --out:
 
@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import calibration  # noqa: E402
 import clusters  # noqa: E402
 import holdout  # noqa: E402
+import landing  # noqa: E402
 import render_html  # noqa: E402
 from evalcore import EVALS_COLUMNS, EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
 
@@ -49,7 +50,6 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
     if prod and not held:
         raise EvalError(f"version {v} has production tasks but no held-out eval cases. Autonomy is reported only beside its quality pair, the pass rate.")
     succeeded = [t for t in prod if t.succeeded]
-    costs = [t.cost_usd for t in prod if t.cost_usd is not None]
     row: dict[str, Any] = {
         "version": v,
         "run_at": max(t.run_at for t in rows),
@@ -61,13 +61,11 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
         "tasks": len(prod) or None,
         "tasks_unassisted": sum(1 for t in prod if t.succeeded and not t.human_stepped_in) if prod else None,
         "tasks_succeeded": len(succeeded) if prod else None,
-        "cost_total": round(sum(costs), 4) if prod and len(costs) == len(prod) else None,
+        # Cost per task is cost-budget-check's figure (Landing Loop contract, one owner per figure). It is only
+        # ever cited here, from the record's cost key, never computed from trace costs.
         "cost_per_task": None,
-        "cost_partial": bool(prod) and 0 < len(costs) < len(prod),
         "judge_scored": any(t.passed is None for t in held + dev),
     }
-    if row["cost_total"] is not None and succeeded:
-        row["cost_per_task"] = round(row["cost_total"] / len(succeeded), 4)
     row["pass_rate"] = pct(row["passed"], row["cases"])
     row["dev_pass_rate"] = pct(row["dev_passed"], row["dev_cases"]) if dev else None
     row["autonomy_rate"] = pct(row["tasks_unassisted"], row["tasks"]) if prod else None
@@ -122,9 +120,6 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     order = versions([t for t in traces if t.kind == "eval"]) or versions(traces)
     rows = [version_row(traces, v) for v in versions(traces)]
     rows.sort(key=lambda r: order.index(r["version"]) if r["version"] in order else len(order))
-    for r in rows:
-        if r["cost_partial"]:
-            warnings.append(f"version {r['version']}: some production rows have no cost_usd, so cost per task is not computed.")
     latest = rows[-1]
     before = rows[-2] if len(rows) > 1 else None
 
@@ -162,23 +157,10 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 f"{r['tasks_unassisted']} of {r['tasks']} production rows succeeded with human_stepped_in false; "
                 f"95% interval {r['autonomy_ci'][0]:g} to {r['autonomy_ci'][1]:g}",
             )
-        if r["cost_per_task"] is not None and not getattr(args, "loop", False):
-            r["ledger"]["cost_per_task"] = ledger.add(
-                f"Cost per successful task ({v})",
-                r["cost_per_task"],
-                "$",
-                f"${r['cost_total']:g} cost_usd over {r['tasks_succeeded']} succeeded production rows",
-            )
-
-    spend = getattr(args, "spend", None)
-    spend_row = None
-    loop = getattr(args, "loop", False)
-    if loop:
-        cite_cost(rows, getattr(args, "cost_key", None), ledger, warnings)
-        if spend:
-            warnings.append("--spend is ignored in the Landing Loop: spend and cost belong to cost-budget-check.")
-    elif spend:
-        spend_row = reconcile(Path(spend), traces, ledger, warnings)
+    cost_key = getattr(args, "cost_key", None)
+    if cost_key is None and getattr(args, "record", None):
+        cost_key = landing.read_record_cost(Path(args.record))
+    cite_cost(rows, cost_key, ledger, warnings)
 
     failed = clusters.failures(traces, latest["version"])
     held_failed = latest["cases"] - latest["passed"]
@@ -197,7 +179,6 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "clusters": clusters.cluster(failed, clusters.passes(traces, latest["version"])),
         "held_out_failures_unread": held_failed,
         "warnings": warnings,
-        "spend": spend_row,
         "ledger": ledger.rows,
     }
 
@@ -207,8 +188,8 @@ COST_MISSING = f"cost not checked: run {COST_OWNER}"
 
 
 def cite_cost(rows: list[dict], cost: dict | None, ledger: Ledger, warnings: list[str]) -> None:
-    """In the Landing Loop, cost per task is cost-budget-check's figure. Cite it from the record's `cost` key onto the
-    latest version, or print none. eval-kit's own trace costs are not shown, so there is one cost figure, not two."""
+    """Cost per task is cost-budget-check's figure. Cite it from the loop record's `cost` key onto the latest version,
+    or print none. eval-kit never computes a cost of its own, so there is one cost figure in the loop, not two."""
     for r in rows:
         r["cost_per_task"] = None
     fig = (cost or {}).get("cost_per_successful_task") or ((cost or {}).get("lines", {}).get("cost_per_task") or {}).get("actual")
@@ -225,27 +206,6 @@ def cite_cost(rows: list[dict], cost: dict | None, ledger: Ledger, warnings: lis
         f"cited from the cost key ({(cost or {}).get('tool', COST_OWNER)}), window {window.get('from')} to {window.get('to')}",
         source=str(fig.get("source", COST_OWNER)),
     )
-
-
-# Trace costs within this share of the provider's bill read as consistent.
-SPEND_TOLERANCE = 0.10
-
-
-def reconcile(path: Path, traces: list[Trace], ledger: Ledger, warnings: list[str]) -> dict[str, Any]:
-    """Provider-billed spend (from_traces.py spend) against the sum of trace costs in the same window."""
-    try:
-        bill = json.loads(path.read_text(encoding="utf-8"))
-        start, end, billed = bill["window"]["from"], bill["window"]["to"], float(bill["total_usd"])
-    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
-        raise EvalError(f"{path} is not a spend file from `from_traces.py spend`.") from None
-    traced = round(sum(t.cost_usd or 0.0 for t in traces if t.kind == "production" and start <= t.run_at <= end), 2)
-    lid = ledger.add(f"Provider-billed model spend, {start} to {end}", billed, "$", f"from {path.name}; trace costs in the window sum to ${traced:,.2f}")
-    if billed and abs(traced - billed) / billed > SPEND_TOLERANCE:
-        warnings.append(
-            f"trace costs (${traced:,.2f}) and the provider's bill (${billed:,.2f}) differ by more than {SPEND_TOLERANCE:.0%} for {start} to {end}. "
-            "Cost per task may miss calls the traces do not record, or the bill covers other features."
-        )
-    return {"window": {"from": start, "to": end}, "billed_usd": billed, "traced_usd": traced, "ledger": lid}
 
 
 def fmt_money(x: float) -> str:
@@ -300,7 +260,9 @@ def markdown(report: dict, evals: dict | None = None) -> str:
             f"({latest['autonomy_rate']:g}%, 95% interval {latest['autonomy_ci'][0]:g} to {latest['autonomy_ci'][1]:g}) [{led['autonomy_rate']}]."
         )
     if latest["cost_per_task"] is not None:
-        out.append(f"Cost per successful task: {fmt_money(latest['cost_per_task'])} [{led['cost_per_task']}].")
+        out.append(f"Cost per successful task, cited from cost-budget-check: {fmt_money(latest['cost_per_task'])} [{led['cost_per_task']}].")
+    else:
+        out.append(f"Cost: {COST_MISSING}.")
     out.append("")
     if report["promotion"]:
         p = report["promotion"]
@@ -321,7 +283,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
             + " | "
             + (f"{r['tasks_unassisted']}/{r['tasks']} ({r['autonomy_rate']:g}%)" if r["autonomy_rate"] is not None else "not run")
             + " | "
-            + (fmt_money(r["cost_per_task"]) if r["cost_per_task"] is not None else "not computed")
+            + (fmt_money(r["cost_per_task"]) + " (cited)" if r["cost_per_task"] is not None else "not checked")
             + " |"
         )
     out += ["", "## Failure modes", ""]
@@ -367,7 +329,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--illustrative", action="store_true", help="mark every figure Illustrative (sample data)")
     p.add_argument("--map", action="append", metavar="SCHEMA=YOURS", help="read your export's column as a schema column; repeat per column")
     p.add_argument("--fail-on", choices=("watch", "stalled"), help="exit 2 when the status is this bad or worse, for a CI gate")
-    p.add_argument("--spend", help="a spend file from `from_traces.py spend`, to check trace costs against the bill")
+    p.add_argument("--record", help="a Landing Loop record, landing/<bet>.json, to cite cost per task from its cost key")
     args = p.parse_args(argv)
     report = write(build(args), Path(args.out))
     gate(report, args.fail_on)
