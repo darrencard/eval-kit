@@ -434,7 +434,8 @@ class Report(Temp):
     def test_figures_on_the_fixture(self) -> None:
         r = self.run_report()
         latest = r["versions"][-1]
-        self.assertEqual(r["status"], "landed")
+        self.assertEqual(r["status"], "meets target")
+        self.assertFalse(r["blocking"])
         self.assertEqual((latest["cases"], latest["passed"], latest["pass_rate"]), (30, 24, 80.0))
         self.assertEqual((latest["dev_cases"], latest["dev_passed"]), (70, 63))
         self.assertEqual((latest["tasks"], latest["tasks_unassisted"], latest["autonomy_rate"]), (200, 143, 71.5))
@@ -479,16 +480,16 @@ class Report(Temp):
         self.assertTrue(all(row["provenance"] == "Measured" for row in r["ledger"]))
         self.assertNotIn("Illustrative", report.markdown(r))
 
-    def test_unsealed_is_never_landed(self) -> None:
+    def test_unsealed_never_meets_target(self) -> None:
         r = self.run_report(seal=None)
-        self.assertEqual(r["status"], "watch")
+        self.assertIsNone(r["status"])
         self.assertTrue(any("not sealed" in x for x in r["reasons"]))
 
-    def test_an_uncalibrated_judge_is_never_landed(self) -> None:
+    def test_an_uncalibrated_judge_never_meets_target(self) -> None:
         for scores in (None, str(LENIENT)):
             with self.subTest(scores=scores):
                 r = self.run_report(judge_scores=scores)
-                self.assertEqual(r["status"], "watch")
+                self.assertIsNone(r["status"])
                 self.assertTrue(any("calibration" in x for x in r["reasons"]))
 
     def test_human_labels_need_no_judge(self) -> None:
@@ -498,18 +499,25 @@ class Report(Temp):
                 row["passed"] = "true" if float(row["score"]) >= 0.6 else "false"
                 row["score"] = ""
         r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), judge_scores=None)
-        self.assertEqual(r["status"], "landed")
+        self.assertEqual(r["status"], "meets target")
 
-    def test_no_target_is_watch(self) -> None:
-        self.assertEqual(self.run_report(target=None)["status"], "watch")
+    def test_no_target_gives_no_status(self) -> None:
+        self.assertIsNone(self.run_report(target=None)["status"])
 
-    def test_far_under_target_is_stalled(self) -> None:
-        self.assertEqual(self.run_report(target=95.0)["status"], "stalled")
+    def test_just_under_target_is_below_target_and_not_blocking(self) -> None:
+        r = self.run_report(target=85.0)
+        self.assertEqual((r["status"], r["blocking"]), ("below target", False))
 
-    def test_a_new_held_out_failure_is_stalled(self) -> None:
+    def test_far_under_target_is_below_target_and_blocking(self) -> None:
+        r = self.run_report(target=95.0)
+        self.assertEqual((r["status"], r["blocking"]), ("below target", True))
+
+    def test_a_new_held_out_failure_blocks(self) -> None:
         rows = read_rows()
         fail_on_v14(rows, first_champion_pass(rows))
-        self.assertEqual(self.run_report(traces=write_rows(rows, self.tmp / "t.csv"))["status"], "stalled")
+        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"))
+        self.assertTrue(r["blocking"])
+        self.assertNotEqual(r["status"], "meets target")
 
     def test_development_far_ahead_of_holdout_reads_as_overfitting(self) -> None:
         rows = read_rows()
@@ -517,7 +525,7 @@ class Report(Temp):
             if row["kind"] == "eval" and row["version"] == "v1.4" and row["split"] == "development":
                 row["score"] = "0.95"
         r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), target=75.0)
-        self.assertEqual(r["status"], "watch")
+        self.assertIsNone(r["status"])
         self.assertTrue(any("tuning to the practice cases" in x for x in r["reasons"]))
 
     def test_autonomy_without_its_quality_pair_is_blocked(self) -> None:
@@ -566,8 +574,8 @@ class Report(Temp):
         self.assertIn("cited from cost-budget-check: $0.0281", report.markdown(r))
 
     def test_status_vocabulary(self) -> None:
-        for kw in ({}, {"seal": None}, {"target": 99.0}):
-            self.assertIn(self.run_report(**kw)["status"], {"landed", "watch", "stalled"})
+        for kw in ({}, {"seal": None}, {"target": 99.0}, {"target": None}):
+            self.assertIn(self.run_report(**kw)["status"], {"meets target", "below target", None})
 
 
 class OneCommand(Temp):
@@ -585,22 +593,30 @@ class OneCommand(Temp):
         seal = json.loads((self.tmp / "traces.seal.json").read_text(encoding="utf-8"))
         self.assertEqual(seal, json.loads(SEAL.read_text(encoding="utf-8")))
         self.assertTrue((out / "calibration_cases.csv").exists())
-        self.assertIn("watch", buf.getvalue())
+        self.assertIn("not confirmed", buf.getvalue())
 
-    def test_second_run_with_a_calibrated_judge_lands(self) -> None:
+    def test_second_run_with_a_calibrated_judge_meets_target(self) -> None:
         src = self.copy_traces()
         out = self.tmp / "run"
         with redirect_stdout(io.StringIO()):
             run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out)])
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "watch"])
-        self.assertEqual(json.loads((out / "report.json").read_text(encoding="utf-8"))["status"], "landed")
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
+        self.assertEqual(json.loads((out / "report.json").read_text(encoding="utf-8"))["status"], "meets target")
 
     def test_fail_on_gates_ci(self) -> None:
         src = self.copy_traces()
         with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "run"), "--fail-on", "watch"])
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "run"), "--fail-on", "below-target"])
         self.assertEqual(ctx.exception.code, 2)
         self.assertTrue((self.tmp / "run" / "report.md").exists())
+
+    def test_fail_on_blocking_trips_only_on_a_blocking_finding(self) -> None:
+        src = self.copy_traces()
+        with redirect_stdout(io.StringIO()):
+            run.main([str(src), "--feature", "x", "--target", "85", "--out", str(self.tmp / "a"), "--judge-scores", str(JUDGE), "--fail-on", "blocking"])
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            run.main([str(src), "--feature", "x", "--target", "95", "--out", str(self.tmp / "b"), "--judge-scores", str(JUDGE), "--fail-on", "blocking"])
+        self.assertEqual(ctx.exception.code, 2)
 
     def test_an_edit_after_sealing_blocks_the_next_run(self) -> None:
         src = self.copy_traces()
@@ -653,8 +669,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.2.0")
-        self.assertIn('version: "0.2.0"', skill)
+        self.assertEqual(plugin["version"], "0.3.0")
+        self.assertIn('version: "0.3.0"', skill)
 
 
 if __name__ == "__main__":

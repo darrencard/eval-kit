@@ -2,7 +2,7 @@
 
 > Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.
 
-**Status: landed.** Held-out pass rate 80% meets the 80% target on a sealed holdout.
+**Status: meets target.** Held-out pass rate 80% meets the 80% target on a sealed holdout.
 
 Against the landing brief: The brief's metric, Quote draft acceptance rate, is not an eval figure. did-it-land judges it; these evals are the build check.
 

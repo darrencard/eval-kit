@@ -18,7 +18,6 @@ h1{font:600 30px/1.15 var(--display);letter-spacing:-.02em;margin:6px 0 10px}
 h2{font:400 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin:40px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 p{margin:0 0 10px;color:var(--t2);max-width:72ch}
 .status{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .lede{font-size:16px;color:var(--t1);max-width:72ch}
 .tag{display:inline-block;font:400 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border:1px dashed var(--brass);border-radius:3px;padding:4px 6px;margin-left:10px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));border:1px solid var(--line);border-radius:6px}
@@ -43,12 +42,12 @@ li{margin:4px 0}
 table,tbody,tr,td{display:block}tr:first-child{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}
 td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}td.n{white-space:normal}
 td::before{content:attr(data-l);font:400 10.5px/20px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}}
-@media print{:root{color-scheme:light;--bg:#fff;--t1:#0A0A0A;--t2:#3C3C3A;--t3:#585855;--line:#ddd;--line2:#bbb;--landed:#1E7A45;--watch:#585855;--brass:#9A6B12}}
+@media print{:root{color-scheme:light;--bg:#fff;--t1:#0A0A0A;--t2:#3C3C3A;--t3:#585855;--line:#ddd;--line2:#bbb;--brass:#9A6B12}}
 </style></head><body><main><div class="label">Evals · v1.4 · as of 2026-11-15<span class="tag">Illustrative</span></div>
 <h1>Quote drafting</h1>
-<p><span class="status"><span class="dot" style="background:var(--landed)"></span>landed</span></p>
+<p><span class="status">meets target</span></p>
 <p class="lede">Held-out pass rate 80% meets the 80% target on a sealed holdout.</p>
-<div class="cards"><div class="card"><div class="label">Held-out pass rate</div><div class="fig">80%</div><div class="line">70% → <b>80%</b> · TARGET 80%<br>24 of 30 · 95% 62.7 to 90.5 · L4</div><svg class="range" width="220" height="22" viewBox="0 0 220 22" aria-hidden="true"><line x1="6" y1="11" x2="214" y2="11" stroke="var(--line2)" stroke-width="1"/><rect x="136.4" y="8" width="57.8" height="6" fill="var(--line2)" rx="1"/><line x1="172.4" y1="3" x2="172.4" y2="19" stroke="var(--t2)" stroke-width="1.5"/><circle cx="151.6" cy="11" r="4" fill="var(--agent)"/><circle cx="172.4" cy="11" r="5" fill="var(--landed)"/></svg></div><div class="card"><div class="label">Without a person</div><div class="fig">71.5%</div><div class="line">59% → <b>71.5%</b><br>143 of 200 tasks · L6</div><svg class="range" width="220" height="22" viewBox="0 0 220 22" aria-hidden="true"><line x1="6" y1="11" x2="214" y2="11" stroke="var(--line2)" stroke-width="1"/><rect x="141.0" y="8" width="25.8" height="6" fill="var(--line2)" rx="1"/><circle cx="128.7" cy="11" r="4" fill="var(--agent)"/><circle cx="154.7" cy="11" r="5" fill="var(--watch)"/></svg></div><div class="card"><div class="label">Cost per successful task</div><div class="fig">not checked</div><div class="line">cost not checked: run cost-budget-check</div></div></div>
+<div class="cards"><div class="card"><div class="label">Held-out pass rate</div><div class="fig">80%</div><div class="line">70% → <b>80%</b> · TARGET 80%<br>24 of 30 · 95% 62.7 to 90.5 · L4</div><svg class="range" width="220" height="22" viewBox="0 0 220 22" aria-hidden="true"><line x1="6" y1="11" x2="214" y2="11" stroke="var(--line2)" stroke-width="1"/><rect x="136.4" y="8" width="57.8" height="6" fill="var(--line2)" rx="1"/><line x1="172.4" y1="3" x2="172.4" y2="19" stroke="var(--t2)" stroke-width="1.5"/><circle cx="151.6" cy="11" r="4" fill="var(--agent)"/><circle cx="172.4" cy="11" r="5" fill="var(--t1)"/></svg></div><div class="card"><div class="label">Without a person</div><div class="fig">71.5%</div><div class="line">59% → <b>71.5%</b><br>143 of 200 tasks · L6</div><svg class="range" width="220" height="22" viewBox="0 0 220 22" aria-hidden="true"><line x1="6" y1="11" x2="214" y2="11" stroke="var(--line2)" stroke-width="1"/><rect x="141.0" y="8" width="25.8" height="6" fill="var(--line2)" rx="1"/><circle cx="128.7" cy="11" r="4" fill="var(--agent)"/><circle cx="154.7" cy="11" r="5" fill="var(--t1)"/></svg></div><div class="card"><div class="label">Cost per successful task</div><div class="fig">not checked</div><div class="line">cost not checked: run cost-budget-check</div></div></div>
 <h2>Against the landing brief</h2>
 <p>The brief&#x27;s metric, Quote draft acceptance rate, is not an eval figure. did-it-land judges it; these evals are the build check.</p>
 <h2>Promotion</h2>

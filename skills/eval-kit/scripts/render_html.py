@@ -4,8 +4,8 @@
 Fonts and colour tokens are read from the vendored template.html at render time, so this page and the Leader
 Report look like one product. The rules from the guide's references/design.md that apply here: numbers get a
 picture that adds no number of its own; labels in mono capitals, content in sans; hairlines, not boxes; green,
-grey-white and red mean landed, watch and stalled only, and the word always prints beside the colour; one line per
-figure as `prior -> actual . TARGET x`.
+grey-white and red mean a bet's landed, watch and stalled only, which did-it-land sets, so this page uses none of
+them: meets target and below target print as plain words; one line per figure as `prior -> actual . TARGET x`.
 
 Every piece of text from the traces is escaped. Nothing is fetched: the page works offline and from a file.
 """
@@ -18,7 +18,6 @@ from pathlib import Path
 from typing import Any
 
 VENDOR = Path(__file__).resolve().parent / "vendor"
-STATUS_VAR = {"landed": "--landed", "watch": "--watch", "stalled": "--stalled"}
 
 
 def _style_guide() -> tuple[str, str]:
@@ -56,7 +55,6 @@ h1{font:600 30px/1.15 var(--display);letter-spacing:-.02em;margin:6px 0 10px}
 h2{font:400 11px/16px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin:40px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
 p{margin:0 0 10px;color:var(--t2);max-width:72ch}
 .status{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.08em}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .lede{font-size:16px;color:var(--t1);max-width:72ch}
 .tag{display:inline-block;font:400 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--brass);border:1px dashed var(--brass);border-radius:3px;padding:4px 6px;margin-left:10px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));border:1px solid var(--line);border-radius:6px}
@@ -81,7 +79,7 @@ li{margin:4px 0}
 table,tbody,tr,td{display:block}tr:first-child{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}
 td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}td.n{white-space:normal}
 td::before{content:attr(data-l);font:400 10.5px/20px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}}
-@media print{:root{color-scheme:light;--bg:#fff;--t1:#0A0A0A;--t2:#3C3C3A;--t3:#585855;--line:#ddd;--line2:#bbb;--landed:#1E7A45;--watch:#585855;--brass:#9A6B12}}
+@media print{:root{color-scheme:light;--bg:#fff;--t1:#0A0A0A;--t2:#3C3C3A;--t3:#585855;--line:#ddd;--line2:#bbb;--brass:#9A6B12}}
 """
 
 
@@ -89,12 +87,13 @@ def esc(x: Any) -> str:
     return html.escape("" if x is None else str(x), quote=True)
 
 
-def status_chip(status: str) -> str:
-    return f'<span class="status"><span class="dot" style="background:var({STATUS_VAR[status]})"></span>{esc(status)}</span>'
+def status_chip(status: str | None) -> str:
+    """The build check's word as plain text, with no status colour: the colours belong to did-it-land."""
+    return f'<span class="status">{esc(status or "not confirmed")}</span>'
 
 
-def range_line(actual: float, status: str, prior: float | None = None, target: float | None = None, ci: tuple | None = None) -> str:
-    """Range line on 0 to 100: interval as a faint band, grey dot for prior, status dot for actual, tick for target."""
+def range_line(actual: float, prior: float | None = None, target: float | None = None, ci: tuple | None = None) -> str:
+    """Range line on 0 to 100: interval as a faint band, grey dot for prior, ink dot for actual, tick for target."""
     w, h, pad = 220, 22, 6
 
     def x(v: float) -> float:
@@ -107,7 +106,7 @@ def range_line(actual: float, status: str, prior: float | None = None, target: f
         parts.append(f'<line x1="{x(target):.1f}" y1="3" x2="{x(target):.1f}" y2="19" stroke="var(--t2)" stroke-width="1.5"/>')
     if prior is not None:
         parts.append(f'<circle cx="{x(prior):.1f}" cy="11" r="4" fill="var(--agent)"/>')
-    parts.append(f'<circle cx="{x(actual):.1f}" cy="11" r="5" fill="var({STATUS_VAR[status]})"/>')
+    parts.append(f'<circle cx="{x(actual):.1f}" cy="11" r="5" fill="var(--t1)"/>')
     return f'<svg class="range" width="{w}" height="{h}" viewBox="0 0 {w} {h}" aria-hidden="true">{"".join(parts)}</svg>'
 
 
@@ -142,7 +141,7 @@ def render(report: dict, evals: dict | None = None) -> str:
             f"{latest['pass_rate']:g}%",
             (f"{prior_pass:g}% → " if prior_pass is not None else "") + f"<b>{latest['pass_rate']:g}%</b>{tgt}<br>"
             f"{latest['passed']} of {latest['cases']} · 95% {latest['pass_ci'][0]:g} to {latest['pass_ci'][1]:g} · {esc(led['pass_rate'])}",
-            range_line(latest["pass_rate"], status, prior_pass, target, latest["pass_ci"]),
+            range_line(latest["pass_rate"], prior_pass, target, latest["pass_ci"]),
         )
     ]
     if latest["autonomy_rate"] is not None:
@@ -153,7 +152,7 @@ def render(report: dict, evals: dict | None = None) -> str:
                 f"{latest['autonomy_rate']:g}%",
                 (f"{prior_auto:g}% → " if prior_auto is not None else "") + f"<b>{latest['autonomy_rate']:g}%</b><br>"
                 f"{latest['tasks_unassisted']} of {latest['tasks']} tasks · {esc(led['autonomy_rate'])}",
-                range_line(latest["autonomy_rate"], "watch", prior_auto, None, latest["autonomy_ci"]),
+                range_line(latest["autonomy_rate"], prior_auto, None, latest["autonomy_ci"]),
             )
         )
     if latest["cost_per_task"] is not None:
@@ -211,7 +210,7 @@ def render(report: dict, evals: dict | None = None) -> str:
     c = report["calibration"]
     out.append("<h2>Judge calibration</h2>")
     if c is None:
-        out.append("<p>Not run. A judge-scored pass rate cannot be marked landed until the judge clears the calibration cases.</p>")
+        out.append("<p>Not run. A judge-scored pass rate cannot meet the target until the judge clears the calibration cases.</p>")
     else:
         fa = ", ".join(c["false_accepts"]) or "none"
         out.append(f"<p>The judge agreed with the human verdict on {c['agreement']:g}% of {c['judged']} cases. False accepts: {esc(fa)}.</p>")

@@ -1,6 +1,6 @@
 [project]
 name = "eval-kit"
-version = "0.2.0"
+version = "0.3.0"
 description = "A skill that sets up and reports evals for one AI feature from a traces CSV."
 requires-python = ">=3.11"
 # Standard library only, on purpose: the scripts run inside sandboxes that cannot install packages.

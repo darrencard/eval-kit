@@ -4,7 +4,8 @@ bet's loop record, landing/<bet>.json.
 
 The brief is parsed by the vendored landing_brief.py, unchanged, so every skill in the loop reads one format.
 The brief's definition of good is one metric, a bar, a direction and a date. When that metric is an eval figure
-(the held-out pass rate, or tasks finished without a person) it is judged here with the brief's own status rule.
+(the held-out pass rate, or tasks finished without a person) it is read here as meets target or below target
+against the brief's bar. landed, watch and stalled are a bet's status, set only by did-it-land, so none prints here.
 When it is a product metric, evals are the build check and did-it-land judges the metric; the key says so.
 
 The record is shared. This writes only `evals` and keeps every other key exactly as it found it. It refuses a
@@ -32,13 +33,12 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "vendor"))
 
 import landing_brief  # noqa: E402  (vendored, unchanged; see vendor/PINS.json)
-from evalcore import EVALS_COLUMNS, EvalError  # noqa: E402
+from evalcore import BELOW, EVALS_COLUMNS, MEETS, EvalError  # noqa: E402
 
 SCHEMA = "landing-loop/1"
 SKILL = "eval-kit"
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 BET = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
-STATUS_ORDER = {"landed": 0, "watch": 1, "stalled": 2}
 # Which eval figure a brief's metric names. Matched on the metric's words, never guessed beyond these.
 FIGURES = (
     ("autonomy_rate", ("autonomy", "without a person", "unassisted", "no person")),
@@ -73,7 +73,7 @@ def target_from(brief: landing_brief.Brief, cli_target: float | None) -> float |
 
 
 def judge(brief: landing_brief.Brief, report: dict, as_of: str) -> dict[str, Any]:
-    """The evals against the brief's definition of good, with the brief's own status rule."""
+    """The evals against the brief's definition of good: meets target or below target, never a bet's status."""
     rows = report["versions"]
     latest = rows[-1]
     before = rows[-2] if len(rows) > 1 else None
@@ -84,22 +84,28 @@ def judge(brief: landing_brief.Brief, report: dict, as_of: str) -> dict[str, Any
         return {**base, "judged": None, "status": None, "note": note}
     value = latest[name]
     if value is None:
-        return {**base, "judged": name, "status": "watch", "value": None, "note": f"{LABELS[name]} is not computed for {latest['version']}."}
+        return {**base, "judged": name, "status": None, "value": None, "note": f"{LABELS[name]} is not computed for {latest['version']}."}
     if brief.unit != "%":
         raise EvalError(f"the brief judges {LABELS[name].lower()}, a percent, but its bar is {brief.bar_text}.")
     prior = before[name] if before else None
-    status = landing_brief.status_for(value, prior, brief.bar, brief.higher_is_better)
+    meets = value >= brief.bar if brief.higher_is_better else value <= brief.bar
+    status = MEETS if meets else BELOW
     notes = []
     ci = latest["pass_ci"] if name == "pass_rate" else latest["autonomy_ci"]
-    if status == "landed" and ci and ci[0] < brief.bar:
+    if meets and ci and ci[0] < brief.bar:
         notes.append(f"the 95% interval reaches {ci[0]:g}%, under the bar")
-    if status != "landed" and datetime.date.fromisoformat(as_of) > datetime.date.fromisoformat(brief.by):
+    if not meets and datetime.date.fromisoformat(as_of) > datetime.date.fromisoformat(brief.by):
         notes.append(f"the date, {brief.by}, has passed")
     return {**base, "judged": name, "status": status, "value": value, "prior": prior, "note": "; ".join(notes)}
 
 
-def worst(*statuses: str | None) -> str:
-    return max((s for s in statuses if s), key=STATUS_ORDER.__getitem__)
+def combined(own: str | None, against: dict[str, Any]) -> str | None:
+    """below target if either reads below; meets target only when the run meets it and the brief does not say less."""
+    if BELOW in (own, against["status"]):
+        return BELOW
+    if own == MEETS and (against["judged"] is None or against["status"] == MEETS):
+        return MEETS
+    return None
 
 
 def figure(value: Any, unit: str, source: str, row: dict, as_of: str, ledger: str, interval: Any = None) -> dict[str, Any]:
@@ -112,10 +118,10 @@ def figure(value: Any, unit: str, source: str, row: dict, as_of: str, ledger: st
 def evals_key(report: dict, brief: landing_brief.Brief, as_of: str) -> dict[str, Any]:
     """The `evals` key: the Leader Report's evals columns, every figure with value, unit, source, window and as_of."""
     against = judge(brief, report, as_of)
-    status = worst(report["status"], against["status"])
+    status = combined(report["status"], against)
     reasons = list(report["reasons"])
-    if against["status"] and STATUS_ORDER[against["status"]] > STATUS_ORDER[report["status"]]:
-        reasons.append(f"against the brief, {LABELS[against['judged']].lower()} is {against['status']}")
+    if against["status"] == BELOW and report["status"] != BELOW:
+        reasons.append(f"against the brief, {LABELS[against['judged']].lower()} is below target")
     warnings = list(report["warnings"])
     if brief.line == "fixed code":
         warnings.append("the brief puts the line at fixed code, but these are traces of a model call. Check the brief or the traces.")
@@ -139,6 +145,7 @@ def evals_key(report: dict, brief: landing_brief.Brief, as_of: str) -> dict[str,
         "version": report["latest"],
         "as_of": as_of,
         "status": status,
+        "blocking": report["blocking"],
         "reasons": reasons,
         "against_brief": against,
         "columns": list(EVALS_COLUMNS),

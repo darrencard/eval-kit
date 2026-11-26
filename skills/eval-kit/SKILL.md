@@ -4,7 +4,7 @@ description: Sets up and reports evals for one AI feature from traces or eval re
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Eval kit
@@ -36,20 +36,20 @@ python3 scripts/run.py TRACES.csv --feature "<feature>" --target <percent> --out
 
 If their columns have other names, add `--map SCHEMA=THEIRS` per column (for example `--map id=trace_id --map kind=type`); never edit their file. If eval rows have no split yet, run `scripts/holdout.py split TRACES.csv --out TRACES_split.csv` first (it splits eval rows only). The first run seals the holdout beside the traces and says so: tell the user to commit the seal file. If a judge scored the cases, it also writes `run/calibration_cases.csv`; the user's judge scores it blind, then rerun with `--judge-scores`. Then read `run/report.md`. The steps below are the long way to the same result.
 
-For a CI gate, add `--fail-on stalled` (or `watch`): the run writes its files, then exits 2. A ready job is in `references/ci-gate.md`.
+For a CI gate, add `--fail-on blocking` (or `below-target`): the run writes its files, then exits 2. A ready job is in `references/ci-gate.md`.
 
 The traces can be CSV or JSONL (one JSON object per line, as most trace tools export). Nested JSON keys read as dotted columns, so `--map version=metadata.version` works. `kind` also accepts test, offline, prod, live and online.
 
 ## In the Landing Loop
 
-eval-kit is step 3 (Build) of the Landing Loop: five skills and the Leader Report on one landing brief, sharing one record per bet, `landing/<bet>.json`.
+eval-kit is step 03 (Build) of the Landing Loop: five skills and the Leader Report on one landing brief, sharing one record per bet, `landing/<bet>.json`.
 
 ```bash
 python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <bet-slug> --out run
 ```
 
 - **The brief** is parsed by `scripts/vendor/landing_brief.py`, copied unchanged from the Leader Report at the commit in `vendor/PINS.json`. Never edit it or write a second parser. `python3 scripts/landing.py check BRIEF.md` says what the brief judges.
-- **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure is judged with the brief's own rule (landed when the bar is met, watch when moving the right way, stalled otherwise), and the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is the worse of the eval status and the brief's.
+- **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure reads meets target when it meets the brief's bar and below target when it does not, and the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is below target if either reads below; meets target only when both do. Never call an eval landed, watch or stalled: those are a bet's status, and only did-it-land sets them.
 - **The record.** It writes only the `evals` key and keeps every other key exactly. It refuses a record whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
 - **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per successful task from the record's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
 - **For leaders**, open `run/report.html`: one self-contained page in the Leader Report's style guide (fonts and colours read from `vendor/template.html`). `run/report.md` is its plain-text twin.
@@ -86,7 +86,7 @@ For a case set with no splits yet: `python3 scripts/holdout.py split cases.csv -
 
 ### 4. Calibrate the judge
 
-Needed whenever eval rows carry `score` rather than `passed`. `python3 scripts/calibration.py export --out run/calibration_cases.csv` writes the cases with no verdicts. The user's judge scores each on relevance, specificity, grounding and actionability (1 to 5) into `id,relevance,specificity,grounding,actionability`. Then `python3 scripts/calibration.py check run/judge_scores.csv`. Most cases are written to be rejected, each on one axis alone. A judge that accepts one of them has a false accept, and no judge-scored pass rate can be marked landed until it clears every case. The built-in cases are for Acme's quote assistant. For another feature, run `python3 scripts/calibration.py template --out my_cases.json`: 7 cases, 5 meant to be rejected, rubrics already set. Help the user write each context and answer from their own domain, then `selftest --cases my_cases.json` and pass `--calibration-cases my_cases.json` to the report. `selftest` checks a case set is fit to test a judge.
+Needed whenever eval rows carry `score` rather than `passed`. `python3 scripts/calibration.py export --out run/calibration_cases.csv` writes the cases with no verdicts. The user's judge scores each on relevance, specificity, grounding and actionability (1 to 5) into `id,relevance,specificity,grounding,actionability`. Then `python3 scripts/calibration.py check run/judge_scores.csv`. Most cases are written to be rejected, each on one axis alone. A judge that accepts one of them has a false accept, and no judge-scored pass rate can meet the target until it clears every case. The built-in cases are for Acme's quote assistant. For another feature, run `python3 scripts/calibration.py template --out my_cases.json`: 7 cases, 5 meant to be rejected, rubrics already set. Help the user write each context and answer from their own domain, then `selftest --cases my_cases.json` and pass `--calibration-cases my_cases.json` to the report. `selftest` checks a case set is fit to test a judge.
 
 ### 5. Report
 
@@ -94,13 +94,15 @@ Needed whenever eval rows carry `score` rather than `passed`. `python3 scripts/c
 python3 scripts/report.py traces.csv --out run --feature "<feature>" --seal holdout.seal.json --judge-scores run/judge_scores.csv --target <percent>
 ```
 
-It writes `run/evals.csv`, `run/report.json`, `run/report.html` and `run/report.md`, or refuses and writes nothing. The status for the latest version is one of:
+It writes `run/evals.csv`, `run/report.json`, `run/report.html` and `run/report.md`, or refuses and writes nothing. The status for the latest version is a build check, never a bet's status (landed, watch and stalled are did-it-land's):
 
 | Status | When |
 |---|---|
-| landed | Held-out pass rate meets the target, the holdout is sealed, the judge is calibrated (or a person labelled the cases), and development is no more than 10 points ahead of holdout |
-| watch | Under target by 10 points or less, or any of the conditions above is missing, or no target is set |
-| stalled | More than 10 points under target, or the new version fails a held-out case the one before passed (the reason also names autonomy if it rose meanwhile) |
+| meets target | Held-out pass rate meets the target, the holdout is sealed, the judge is calibrated (or a person labelled the cases), development is no more than 10 points ahead of holdout, and no held-out case the version before passed now fails |
+| below target | Held-out pass rate is under the target |
+| not confirmed (no status word) | The rate meets the target but a condition above is missing, or no target is set |
+
+`blocking` is true, whatever the status, when the new version fails a held-out case the one before passed (the reason also names autonomy if it rose meanwhile), or the rate is more than 10 points under target.
 
 Every rate carries a 95% Wilson interval. When the interval's low end is under the target, `report.md` says so; repeat that, do not drop it. When the promotion gain sits inside either rate's interval, say the gain is direction, not size.
 

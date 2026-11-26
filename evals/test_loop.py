@@ -93,19 +93,26 @@ class AgainstBrief(Temp):
     def test_a_product_metric_leaves_the_target_to_the_flag(self) -> None:
         self.assertEqual(landing.target_from(landing.read_brief(BRIEF_PRODUCT), 70.0), 70.0)
 
-    def test_pass_rate_judged_with_the_briefs_rule(self) -> None:
+    def test_pass_rate_read_against_the_briefs_bar(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF), "2026-11-26")
         a = key["against_brief"]
-        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "landed", 80.0, 70.0))
+        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "meets target", 80.0, 70.0))
         self.assertIn("62.7%", a["note"])
-        self.assertEqual(key["status"], "landed")
+        self.assertEqual(key["status"], "meets target")
+        self.assertFalse(key["blocking"])
 
-    def test_autonomy_judged_and_the_worse_status_wins(self) -> None:
+    def test_autonomy_below_the_bar_reads_below_target(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF_AUTONOMY), "2026-11-26")
         a = key["against_brief"]
-        self.assertEqual((a["judged"], a["status"], a["value"]), ("autonomy_rate", "watch", 71.5))
-        self.assertEqual(key["status"], "watch")
+        self.assertEqual((a["judged"], a["status"], a["value"]), ("autonomy_rate", "below target", 71.5))
+        self.assertEqual(key["status"], "below target")
         self.assertTrue(any("against the brief" in r for r in key["reasons"]))
+
+    def test_never_a_bets_status_word(self) -> None:
+        for brief in (BRIEF, BRIEF_AUTONOMY, BRIEF_PRODUCT):
+            key = landing.evals_key(build(), landing.read_brief(brief), "2026-11-26")
+            for status in (key["status"], key["against_brief"]["status"]):
+                self.assertIn(status, {"meets target", "below target", None})
 
     def test_a_passed_date_is_named(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF_AUTONOMY), "2027-01-15")
@@ -211,9 +218,9 @@ class LoopRecord(Temp):
         with redirect_stdout(io.StringIO()):
             run.main(args)
         rec = json.loads((folder / "quote-drafting-assistant.json").read_text(encoding="utf-8"))
-        self.assertEqual(rec["evals"]["status"], "landed")
+        self.assertEqual(rec["evals"]["status"], "meets target")
         self.assertEqual(rec["evals"]["as_of"], "2026-11-15")
-        self.assertIn("Against the landing brief: **landed**", (out / "report.md").read_text(encoding="utf-8"))
+        self.assertIn("Against the landing brief: **meets target**", (out / "report.md").read_text(encoding="utf-8"))
         self.assertIn("Against the landing brief", (out / "report.html").read_text(encoding="utf-8"))
 
     def run_loop(self, record: dict | None) -> dict:
@@ -272,11 +279,13 @@ class Page(Temp):
         self.assertIsNone(re.search(r"""(src|href)=["']?https?://""", text))
         self.assertNotIn("<script", text)
         self.assertIn('font-family:"Geist"', text)
-        self.assertIn("--landed:#5CD38C", text)
 
-    def test_status_word_prints_beside_its_colour(self) -> None:
+    def test_status_prints_as_plain_words_with_no_status_colour(self) -> None:
         text = self.page()
-        self.assertRegex(text, r'var\(--landed\)"></span>landed')
+        self.assertIn('<span class="status">meets target</span>', text)
+        body = text.split("<main>", 1)[1]
+        for word in ("landed", "watch", "stalled", "var(--landed)", "var(--watch)", "var(--stalled)"):
+            self.assertNotIn(word, body)
         self.assertIn("Illustrative", text)
 
     def test_no_cost_figure_without_the_cost_key(self) -> None:

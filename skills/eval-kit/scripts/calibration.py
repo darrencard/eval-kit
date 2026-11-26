@@ -7,8 +7,8 @@ fails on that axis alone, so a rejection has to be for the right reason and not 
 
 Two layers. The rule layer: `passes()` must classify every human-labelled rubric correctly (`selftest`). The
 judge layer: the judge model scores the same answers blind, and `check` compares its verdicts with the human
-ones. A judge that accepts a case meant to be rejected is a judge failure, and the report will not mark a
-judge-scored pass rate landed until the judge clears every case.
+ones. A judge that accepts a case meant to be rejected is a judge failure, and the report will not say a
+judge-scored pass rate meets target until the judge clears every case.
 
 Ported from Throughline lib/eval/judge-calibration.ts and rubric.ts. The default cases use Acme, an invented
 invoicing company for trades businesses, and its quote-drafting assistant. All illustrative.

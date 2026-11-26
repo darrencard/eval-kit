@@ -19,7 +19,7 @@ cd skills/eval-kit
 python3 scripts/run.py ../../evals/fixtures/acme_quote_traces.csv --feature "Quote drafting" --target 80 --out run --illustrative
 ```
 
-The first run seals the holdout and writes blind calibration cases for your judge. Score them, rerun with `--judge-scores`, and the report can say landed. Your own export: add `--map id=trace_id` (and so on) instead of editing the file. CSV or JSONL both work. In CI: add `--fail-on stalled`; a ready GitHub Actions job is in [references/ci-gate.md](skills/eval-kit/references/ci-gate.md).
+The first run seals the holdout and writes blind calibration cases for your judge. Score them, rerun with `--judge-scores`, and the report can say meets target. Your own export: add `--map id=trace_id` (and so on) instead of editing the file. CSV or JSONL both work. In CI: add `--fail-on blocking`; a ready GitHub Actions job is in [references/ci-gate.md](skills/eval-kit/references/ci-gate.md).
 
 ## Sample
 
@@ -40,15 +40,15 @@ Same inputs, same bytes: a test checks the command reproduces the committed file
 | Intervals | A 95% Wilson interval on every rate, and a flag when a gain sits inside the noise | 24 of 30 never reads as a precise 80% |
 | Judge calibration | 8 Acme cases, 6 written to be rejected, each on one axis, plus a template for your own; checks your judge's blind scores | You know your judge rejects bad answers before you trust its pass rate |
 | Failure clusters | Groups failures by shared terms, with no categories set in advance, and 2 example traces each | Error analysis starts from what actually went wrong |
-| Autonomy with its pair | Tasks finished without a person, only beside the held-out pass rate; stalled names it when quality fell meanwhile | Autonomy can't rise unseen while quality falls |
-| CI gate | `--fail-on watch` or `stalled` exits 2 after writing the report | A regression stops the merge, with the reason to read |
-| Landing Loop | Judges pass rate or autonomy against the landing brief, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, five skills and the Leader Report reading the same figures |
+| Autonomy with its pair | Tasks finished without a person, only beside the held-out pass rate; the report names it when quality fell meanwhile | Autonomy can't rise unseen while quality falls |
+| CI gate | `--fail-on blocking` or `below-target` exits 2 after writing the report | A regression stops the merge, with the reason to read |
+| Landing Loop | Reads pass rate or autonomy against the landing brief's bar, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, five skills and the Leader Report reading the same figures |
 | Live data | Reads OpenAI Evals, Langfuse and PostHog LLM exports; CSV as the fallback | No retyping traces into a spreadsheet |
 | One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
 | One owner for cost | Computes no cost of its own; cites cost per task from cost-budget-check's `cost` key, or says "cost not checked: run cost-budget-check" | One cost figure across the loop, never two that disagree |
 | Leader Report source | Writes `evals.csv` in the Product & Technology Leader Report's columns | One run feeds your board update |
-| Status | landed, watch or stalled, with every reason | One word a leader can act on |
+| Build check | meets target or below target, with every reason. landed, watch and stalled are a bet's status and only did-it-land sets them | A build check never reads as a bet's result |
 
 The fixture is Acme, an invented invoicing company for trades businesses, and its quote-drafting assistant. Every figure it produces is illustrative.
 
-Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.2, private until reviewed. The live-data readers are tested on documented response shapes, not yet on a live account.
+Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.3, private until reviewed. The live-data readers are tested on documented response shapes, not yet on a live account.

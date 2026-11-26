@@ -7,11 +7,12 @@
   },
   "evals": {
     "skill": "eval-kit",
-    "skill_version": "0.2.0",
+    "skill_version": "0.3.0",
     "feature": "Quote drafting",
     "version": "v1.4",
     "as_of": "2026-11-15",
-    "status": "landed",
+    "status": "meets target",
+    "blocking": false,
     "reasons": [
       "held-out pass rate 80% meets the 80% target on a sealed holdout"
     ],

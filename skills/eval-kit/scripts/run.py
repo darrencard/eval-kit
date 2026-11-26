@@ -10,7 +10,7 @@ written to the `evals` key of landing/<bet>.json, the Landing Loop record, and n
 
 Usage:
   python3 scripts/run.py TRACES.csv --feature "Quote drafting" --target 85 [--out run] [--map SCHEMA=YOURS ...]
-      [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on watch|stalled] [--illustrative]
+      [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on below-target|blocking] [--illustrative]
       [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]]
 """
 
@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--map", action="append", metavar="SCHEMA=YOURS")
     p.add_argument("--judge-scores")
     p.add_argument("--calibration-cases")
-    p.add_argument("--fail-on", choices=("watch", "stalled"))
+    p.add_argument("--fail-on", choices=report.FAIL_ON)
     p.add_argument("--illustrative", action="store_true")
     p.add_argument("--brief", help="the feature's landing brief (Markdown, or the Linear project JSON)")
     p.add_argument("--bet", help="the bet's slug; with --brief, writes the evals key of LANDING/<bet>.json")
@@ -103,7 +103,7 @@ def main(argv: list[str] | None = None) -> None:
         path = landing.write_record(Path(args.landing), args.bet, Path(args.brief), evals)
         print(f"run: wrote the evals key of {path}; every other key is as it was.")
     print(f"run: read {out / 'report.html'} (or report.md). Feed {out / 'evals.csv'} to the Leader Report as its evals source.")
-    report.gate(built, args.fail_on, evals["status"] if evals else None)
+    report.gate(built, args.fail_on, evals)
 
 
 if __name__ == "__main__":

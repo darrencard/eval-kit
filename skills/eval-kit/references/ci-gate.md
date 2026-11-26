@@ -1,6 +1,6 @@
 # Eval gate in CI
 
-Run the report on every pull request that changes a prompt, model or pipeline, and fail the check when the new version is stalled. The report files are written before the exit, so the failed run can be read.
+Run the report on every pull request that changes a prompt, model or pipeline, and fail the check on a blocking finding. The report files are written before the exit, so the failed run can be read.
 
 Copy `skills/eval-kit` into your repository (for example under `tools/eval-kit`), commit your traces CSV (or JSONL) and its seal file, then add this job. Pin actions to commit SHAs, as in this repository's own workflow.
 
@@ -25,12 +25,12 @@ jobs:
           python3 tools/eval-kit/scripts/run.py evals/traces.csv
           --feature "Quote drafting" --target 85 --out eval-run
           --seal evals/traces.seal.json --judge-scores evals/judge_scores.csv
-          --fail-on stalled
+          --fail-on blocking
       - name: Show the report
         if: always()
         run: cat eval-run/report.md >> "$GITHUB_STEP_SUMMARY"
 ```
 
-`--fail-on stalled` blocks a version that fails a held-out case the one before passed, or sits more than 10 points under target. Use `--fail-on watch` to also block an unsealed holdout, an uncalibrated judge or a pass rate under target. Exit codes: 0 passed the gate, 1 the report was refused (fix the data; nothing is written), 2 the gate failed (the report is written).
+`--fail-on blocking` blocks a version that fails a held-out case the one before passed, or sits more than 10 points under target. Use `--fail-on below-target` to block anything short of meets target: also an unsealed holdout, an uncalibrated judge or a pass rate under target. Exit codes: 0 passed the gate, 1 the report was refused (fix the data; nothing is written), 2 the gate failed (the report is written).
 
 Pass `--seal` explicitly in CI. Without it, a first run would write a new seal in the runner and pass a holdout nobody committed.

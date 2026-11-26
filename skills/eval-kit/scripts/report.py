@@ -13,7 +13,7 @@ failures it is allowed to read. Then it writes three files to --out:
 On any blocking error it writes nothing and exits non-zero with what to fix.
 
 Usage:
-  python3 scripts/report.py TRACES.csv --out run --feature "Quote drafting" [--map SCHEMA=YOURS] [--fail-on stalled] \\
+  python3 scripts/report.py TRACES.csv --out run --feature "Quote drafting" [--map SCHEMA=YOURS] [--fail-on blocking] \\
       [--seal holdout.seal.json] [--judge-scores judge_scores.csv] [--target 85] [--illustrative]
 """
 
@@ -34,9 +34,9 @@ import clusters  # noqa: E402
 import holdout  # noqa: E402
 import landing  # noqa: E402
 import render_html  # noqa: E402
-from evalcore import EVALS_COLUMNS, EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
+from evalcore import BELOW, EVALS_COLUMNS, MEETS, EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
 
-# A held-out rate this many points under target is stalled, not watch.
+# A held-out rate this many points under target blocks the CI gate, not only reads below target.
 STALL_MARGIN = 10.0
 # Development ahead of holdout by more than this many points reads as tuning to the practice cases.
 OVERFIT_GAP = 10.0
@@ -74,10 +74,19 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
     return row
 
 
+FAIL_ON = ("below-target", "blocking")
+
+
 def decide_status(
     latest: dict, target: float | None, sealed: bool, calib: dict | None, verdict: holdout.Verdict | None, before: dict | None = None
-) -> tuple[str, list[str]]:
-    """landed, watch or stalled for the latest version, with every reason. Nothing else prints as a status."""
+) -> tuple[str | None, bool, list[str]]:
+    """(status, blocking, reasons) for the latest version.
+
+    status is "meets target", "below target", or None when the run cannot confirm either (no target, an unsealed
+    holdout, an uncalibrated judge, development far ahead of holdout, or a new held-out failure). These are build
+    checks, not a bet's status: landed, watch and stalled are did-it-land's words and never print here.
+    blocking is True for what a CI gate should stop: a new held-out failure, or a rate far under target.
+    """
     reasons: list[str] = []
     rate = latest["pass_rate"]
     if verdict and verdict.new_failures:
@@ -85,12 +94,14 @@ def decide_status(
         # Goodhart guard: autonomy bought with quality is not progress. Name it when the pair moves apart.
         if before and latest["autonomy_rate"] is not None and before["autonomy_rate"] is not None and latest["autonomy_rate"] > before["autonomy_rate"]:
             why.append(f"autonomy rose ({before['autonomy_rate']:g}% to {latest['autonomy_rate']:g}%) while held-out quality fell")
-        return "stalled", why
+        below = target is not None and rate < target
+        return (BELOW if below else None), True, why
     if target is None:
-        return "watch", ["no target is set for the held-out pass rate"]
+        return None, False, ["no target is set for the held-out pass rate"]
     if rate < target - STALL_MARGIN:
-        return "stalled", [f"held-out pass rate {rate:g}% is more than {STALL_MARGIN:g} points under the {target:g}% target"]
-    if rate < target:
+        return BELOW, True, [f"held-out pass rate {rate:g}% is more than {STALL_MARGIN:g} points under the {target:g}% target"]
+    below = rate < target
+    if below:
         reasons.append(f"held-out pass rate {rate:g}% is under the {target:g}% target")
     if not sealed:
         reasons.append("the holdout is not sealed, so it could have been tuned against")
@@ -99,9 +110,16 @@ def decide_status(
     gap = None if latest["dev_pass_rate"] is None else round(latest["dev_pass_rate"] - rate, 1)
     if gap is not None and gap > OVERFIT_GAP:
         reasons.append(f"development runs {gap:g} points ahead of holdout, which reads as tuning to the practice cases")
+    if below:
+        return BELOW, False, reasons
     if reasons:
-        return "watch", reasons
-    return "landed", [f"held-out pass rate {rate:g}% meets the {target:g}% target on a sealed holdout"]
+        return None, False, reasons
+    return MEETS, False, [f"held-out pass rate {rate:g}% meets the {target:g}% target on a sealed holdout"]
+
+
+def status_text(status: str | None) -> str:
+    """The status as printed: the word, or "not confirmed" when the run can confirm neither."""
+    return status or "not confirmed"
 
 
 def build(args: argparse.Namespace) -> dict[str, Any]:
@@ -113,7 +131,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         errors += holdout.verify(traces, Path(args.seal))
         sealed = not errors
     else:
-        warnings.append("no --seal given: the holdout is unsealed, so no version can be marked landed.")
+        warnings.append("no --seal given: the holdout is unsealed, so no version can be confirmed as meeting the target.")
     if errors:
         raise EvalError("the report is blocked. " + " ".join(errors))
 
@@ -132,7 +150,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         calib = calibration.check_judge(cases, Path(args.judge_scores))
 
     verdict = holdout.judge_promotion(traces, before["version"], latest["version"]) if before else None
-    status, reasons = decide_status(latest, args.target, sealed, calib, verdict, before)
+    status, blocking, reasons = decide_status(latest, args.target, sealed, calib, verdict, before)
 
     ledger = Ledger(src, args.illustrative)
     for r in rows:
@@ -173,6 +191,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "versions": rows,
         "latest": latest["version"],
         "status": status,
+        "blocking": blocking,
         "reasons": reasons,
         "promotion": asdict(verdict) if verdict else None,
         "calibration": calib,
@@ -232,13 +251,13 @@ def markdown(report: dict, evals: dict | None = None) -> str:
         out += ["> Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.", ""]
     status = evals["status"] if evals else report["status"]
     why = "; ".join(evals["reasons"] if evals else report["reasons"])
-    out.append(f"**Status: {status}.** {why[:1].upper()}{why[1:]}.")
+    out.append(f"**Status: {status_text(status)}.** {why[:1].upper()}{why[1:]}.")
     out.append("")
     if evals:
         a = evals["against_brief"]
         if a["judged"]:
             v = "not computed" if a.get("value") is None else f"{a['value']:g}%"
-            out.append(f"Against the landing brief: **{a['status']}**. {a['metric']} is {v} against a bar of {a['bar']} by {a['by']}.")
+            out.append(f"Against the landing brief: **{status_text(a['status'])}**. {a['metric']} is {v} against a bar of {a['bar']} by {a['by']}.")
             if a.get("note"):
                 out.append(f"{a['note'][:1].upper()}{a['note'][1:]}.")
         else:
@@ -301,7 +320,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
     c = report["calibration"]
     out += ["## Judge calibration", ""]
     if c is None:
-        out.append("Not run. A judge-scored pass rate cannot be marked landed until the judge clears the calibration cases.")
+        out.append("Not run. A judge-scored pass rate cannot meet the target until the judge clears the calibration cases.")
     else:
         out.append(
             f"The judge agreed with the human verdict on {c['agreement']:g}% of {c['judged']} cases. "
@@ -328,21 +347,26 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--target", type=float, help="target held-out pass rate, in percent")
     p.add_argument("--illustrative", action="store_true", help="mark every figure Illustrative (sample data)")
     p.add_argument("--map", action="append", metavar="SCHEMA=YOURS", help="read your export's column as a schema column; repeat per column")
-    p.add_argument("--fail-on", choices=("watch", "stalled"), help="exit 2 when the status is this bad or worse, for a CI gate")
+    p.add_argument(
+        "--fail-on",
+        choices=FAIL_ON,
+        help="for a CI gate: below-target exits 2 unless the status is meets target; blocking exits 2 on a new held-out failure or a rate far under target",
+    )
     p.add_argument("--record", help="a Landing Loop record, landing/<bet>.json, to cite cost per task from its cost key")
     args = p.parse_args(argv)
     report = write(build(args), Path(args.out))
     gate(report, args.fail_on)
 
 
-FAIL_ORDER = {"landed": 0, "watch": 1, "stalled": 2}
+def gate(report: dict, fail_on: str | None, evals: dict | None = None) -> None:
+    """For CI: exit 2 when --fail-on trips. The files are written first, so the run can be read.
 
-
-def gate(report: dict, fail_on: str | None, status: str | None = None) -> None:
-    """For CI: exit 2 when the status is at or past --fail-on. The files are written first, so the run can be read."""
-    status = status or report["status"]
-    if fail_on and FAIL_ORDER[status] >= FAIL_ORDER[fail_on]:
-        print(f"report: failing the gate, {report['latest']} is {status} (--fail-on {fail_on})")
+    below-target trips unless the status is meets target; blocking trips on a new held-out failure or a held-out
+    rate far under target. With the evals key (run.py passes it), its status and blocking are the ones read."""
+    src = evals if evals else report
+    status, blocking = src["status"], src["blocking"]
+    if (fail_on == "below-target" and status != MEETS) or (fail_on == "blocking" and blocking):
+        print(f"report: failing the gate, {report['latest']}: {status_text(status)} (--fail-on {fail_on})")
         raise SystemExit(2)
 
 
@@ -354,7 +378,7 @@ def write(report: dict, out: Path, evals: dict | None = None) -> dict:
     (out / "report.md").write_text(markdown(report, evals), encoding="utf-8")
     (out / "report.html").write_text(render_html.render(report, evals), encoding="utf-8")
     status = evals["status"] if evals else report["status"]
-    print(f"report: {report['latest']} is {status}; wrote evals.csv, report.json, report.html and report.md to {out}")
+    print(f"report: {report['latest']}: {status_text(status)}; wrote evals.csv, report.json, report.html and report.md to {out}")
     for w in report["warnings"]:
         print(f"warning: {w}")
     return report
