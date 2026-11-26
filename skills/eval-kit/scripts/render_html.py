@@ -29,6 +29,24 @@ def _style_guide() -> tuple[str, str]:
     return faces, root.group(0) if root else ""
 
 
+class Table:
+    """A table whose cells carry their column name, so a phone shows each row as labelled lines."""
+
+    def __init__(self, heads: tuple[str, ...]) -> None:
+        self.heads = heads
+        self.rows: list[str] = []
+
+    def row(self, *cells: tuple[str, str]) -> None:
+        tds = []
+        for head, (cls, body) in zip(self.heads, cells, strict=True):
+            attr = f' class="{cls}"' if cls else ""
+            tds.append(f'<td{attr} data-l="{esc(head)}"><span>{body}</span></td>')
+        self.rows.append("<tr>" + "".join(tds) + "</tr>")
+
+    def html(self) -> str:
+        return "<table><tr>" + "".join(f"<th>{esc(h)}</th>" for h in self.heads) + "</tr>" + "".join(self.rows) + "</table>"
+
+
 CSS = """
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -57,7 +75,12 @@ td.n{font-family:var(--mono);color:var(--t1);white-space:nowrap}
 .call{color:var(--brass)}
 ul{margin:0;padding-left:18px;color:var(--t2)}
 li{margin:4px 0}
-@media (max-width:640px){.card{border-left:0;border-top:1px solid var(--line)}.card:first-child{border-top:0}main{padding:28px 16px}}
+.mono{font-family:var(--mono);color:var(--t2)}
+.ex,td{overflow-wrap:anywhere}
+@media (max-width:640px){.card{border-left:0;border-top:1px solid var(--line)}.card:first-child{border-top:0}main{padding:28px 16px}
+table,tbody,tr,td{display:block}tr:first-child{display:none}tr{padding:12px 0;border-bottom:1px solid var(--line)}
+td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}td.n{white-space:normal}
+td::before{content:attr(data-l);font:400 10.5px/20px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}}
 @media print{:root{color-scheme:light;--bg:#fff;--t1:#0A0A0A;--t2:#3C3C3A;--t3:#585855;--line:#ddd;--line2:#bbb;--landed:#1E7A45;--watch:#585855;--brass:#9A6B12}}
 """
 
@@ -162,30 +185,25 @@ def render(report: dict, evals: dict | None = None) -> str:
         if p["within_noise"]:
             out.append("<p>Each rate sits inside the other's 95% interval, so read the gain as direction, not size.</p>")
 
-    out.append(
-        "<h2>By version</h2><table><tr><th>Version</th><th>Run</th><th>Held-out pass</th><th>Development pass</th><th>Without a person</th><th>Cost per successful task</th></tr>"
-    )
+    out.append("<h2>By version</h2>")
+    tab = Table(("Version", "Run", "Held-out pass", "Development pass", "Without a person", "Cost per successful task"))
     for r in rows:
         dev = f"{r['dev_passed']}/{r['dev_cases']} ({r['dev_pass_rate']:g}%)" if r["dev_pass_rate"] is not None else "not run"
         auto = f"{r['tasks_unassisted']}/{r['tasks']} ({r['autonomy_rate']:g}%)" if r["autonomy_rate"] is not None else "not run"
         cost = money(r["cost_per_task"]) + " (cited)" if r["cost_per_task"] is not None else "not checked"
-        out.append(
-            f'<tr><td class="n">{esc(r["version"])}</td><td class="n">{esc(r["run_at"])}</td>'
-            f'<td class="n">{r["passed"]}/{r["cases"]} ({r["pass_rate"]:g}%)</td><td class="n">{esc(dev)}</td><td class="n">{esc(auto)}</td><td class="n">{esc(cost)}</td></tr>'
-        )
-    out.append("</table>")
+        held = f"{r['passed']}/{r['cases']} ({r['pass_rate']:g}%)"
+        tab.row(*(("n", esc(v)) for v in (r["version"], r["run_at"], held, dev, auto, cost)))
+    out.append(tab.html())
 
     out.append("<h2>Failure modes</h2>")
     if report["clusters"]:
         out.append("<p>Found with no categories set in advance, from development failures and production tasks that failed or needed a person.</p>")
-        out.append("<table><tr><th>Cluster</th><th>Shared terms</th><th>Share</th><th>Read first</th></tr>")
+        tab = Table(("Cluster", "Shared terms", "Share", "Read first"))
         for c in report["clusters"]:
             ex = "<br>".join(f"<span class='mono'>{esc(e['trace'])}</span> {esc(e['text'])}" for e in c["examples"])
-            out.append(
-                f'<tr><td class="n">{esc(c["id"])}</td><td>{esc(c["label"])}</td>'
-                f'<td class="n"><span class="bar" style="width:{max(2, c["share"])}px"></span>{c["size"]} · {c["share"]}%</td><td class="ex">{ex}</td></tr>'
-            )
-        out.append("</table>")
+            share = f'<span class="bar" style="width:{max(2, c["share"])}px"></span>{c["size"]} · {c["share"]}%'
+            tab.row(("n", esc(c["id"])), ("", esc(c["label"])), ("n", share), ("ex", ex))
+        out.append(tab.html())
     else:
         out.append("<p>No failures to read.</p>")
     out.append(f"<p>{report['held_out_failures_unread']} held-out failure(s) are counted and not read, so the holdout stays sealed.</p>")
@@ -202,14 +220,12 @@ def render(report: dict, evals: dict | None = None) -> str:
     if warnings:
         out.append("<h2>Warnings</h2><ul>" + "".join(f"<li>{esc(w)}</li>" for w in warnings) + "</ul>")
 
-    out.append("<h2>Ledger</h2><table><tr><th>Row</th><th>Figure</th><th>Value</th><th>Basis</th><th>Source</th><th>Provenance</th></tr>")
+    out.append("<h2>Ledger</h2>")
+    tab = Table(("Row", "Figure", "Value", "Basis", "Source", "Provenance"))
     for r in report["ledger"]:
         val = money(r["value"]) if r["unit"] == "$" else f"{r['value']:g}{r['unit']}"
-        out.append(
-            f'<tr><td class="n">{esc(r["id"])}</td><td>{esc(r["label"])}</td><td class="n">{esc(val)}</td>'
-            f'<td>{esc(r["basis"])}</td><td class="ex">{esc(r["source"])}</td><td class="n">{esc(r["provenance"])}</td></tr>'
-        )
-    out.append("</table>")
+        tab.row(("n", esc(r["id"])), ("", esc(r["label"])), ("n", esc(val)), ("", esc(r["basis"])), ("ex", esc(r["source"])), ("n", esc(r["provenance"])))
+    out.append(tab.html())
     body = "\n".join(out)
     title = esc(f"Evals: {report['feature']}")
     return (

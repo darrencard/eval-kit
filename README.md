@@ -21,6 +21,16 @@ python3 scripts/run.py ../../evals/fixtures/acme_quote_traces.csv --feature "Quo
 
 The first run seals the holdout and writes blind calibration cases for your judge. Score them, rerun with `--judge-scores`, and the report can say landed. Your own export: add `--map id=trace_id` (and so on) instead of editing the file. CSV or JSONL both work. In CI: add `--fail-on stalled`; a ready GitHub Actions job is in [references/ci-gate.md](skills/eval-kit/references/ci-gate.md).
 
+## Sample
+
+[examples/acme/eval-kit.html](examples/acme/eval-kit.html) is one bet, Acme's quote drafting, run end to end: the canonical brief from the landing-loop repo, quote-drafting traces and a sealed holdout. Every figure is illustrative. It also writes only the `evals` key of [examples/acme/landing/quote-drafting.json](examples/acme/landing/quote-drafting.json) and a Markdown twin. Regenerate it from the repo root:
+
+```bash
+python3 examples/acme/sample.py
+```
+
+Same inputs, same bytes: a test checks the command reproduces the committed files exactly. `--into DIR` writes them elsewhere.
+
 ## What it does
 
 | Feature | What it does | What it does for you |

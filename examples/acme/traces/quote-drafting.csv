@@ -1,0 +1,601 @@
+kind,id,version,run_at,split,passed,score,succeeded,human_stepped_in,cost_usd,input,output,note
+eval,q001,v1.3,2026-10-15,development,,0.89,,,,Draft quote: replace leaking water heater 50 gallon for customer C100,Quote drafted with line items and total,
+eval,q002,v1.3,2026-10-15,development,,0.31,,,,Draft quote: install outdoor tap and isolation valve for customer C101,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q003,v1.3,2026-10-15,development,,0.79,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C102,Quote drafted with line items and total,
+eval,q004,v1.3,2026-10-15,holdout,,0.86,,,,Draft quote: service gas boiler and replace thermocouple for customer C103,Quote drafted with line items and total,
+eval,q005,v1.3,2026-10-15,holdout,,0.99,,,,Draft quote: fit new consumer unit with surge protection for customer C104,Quote drafted with line items and total,
+eval,q006,v1.3,2026-10-15,holdout,,0.44,,,,Draft quote: unblock main drain and camera survey for customer C105,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q007,v1.3,2026-10-15,holdout,,0.37,,,,Draft quote: replace bathroom extractor fan for customer C106,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q008,v1.3,2026-10-15,holdout,,0.77,,,,Draft quote: repair roof flashing around chimney for customer C107,Quote drafted with line items and total,
+eval,q009,v1.3,2026-10-15,holdout,,0.32,,,,Draft quote: replace leaking water heater 50 gallon for customer C108,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q010,v1.3,2026-10-15,development,,0.78,,,,Draft quote: install outdoor tap and isolation valve for customer C109,Quote drafted with line items and total,
+eval,q011,v1.3,2026-10-15,development,,0.82,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C110,Quote drafted with line items and total,
+eval,q012,v1.3,2026-10-15,development,,0.80,,,,Draft quote: service gas boiler and replace thermocouple for customer C111,Quote drafted with line items and total,
+eval,q013,v1.3,2026-10-15,development,,0.98,,,,Draft quote: fit new consumer unit with surge protection for customer C112,Quote drafted with line items and total,
+eval,q014,v1.3,2026-10-15,development,,0.89,,,,Draft quote: unblock main drain and camera survey for customer C113,Quote drafted with line items and total,
+eval,q015,v1.3,2026-10-15,development,,0.93,,,,Draft quote: replace bathroom extractor fan for customer C114,Quote drafted with line items and total,
+eval,q016,v1.3,2026-10-15,holdout,,0.83,,,,Draft quote: repair roof flashing around chimney for customer C115,Quote drafted with line items and total,
+eval,q017,v1.3,2026-10-15,holdout,,0.38,,,,Draft quote: replace leaking water heater 50 gallon for customer C116,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q018,v1.3,2026-10-15,holdout,,0.89,,,,Draft quote: install outdoor tap and isolation valve for customer C117,Quote drafted with line items and total,
+eval,q019,v1.3,2026-10-15,holdout,,0.86,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C118,Quote drafted with line items and total,
+eval,q020,v1.3,2026-10-15,development,,0.89,,,,Draft quote: service gas boiler and replace thermocouple for customer C119,Quote drafted with line items and total,
+eval,q021,v1.3,2026-10-15,development,,0.92,,,,Draft quote: fit new consumer unit with surge protection for customer C120,Quote drafted with line items and total,
+eval,q022,v1.3,2026-10-15,development,,0.90,,,,Draft quote: unblock main drain and camera survey for customer C121,Quote drafted with line items and total,
+eval,q023,v1.3,2026-10-15,development,,0.99,,,,Draft quote: replace bathroom extractor fan for customer C122,Quote drafted with line items and total,
+eval,q024,v1.3,2026-10-15,development,,0.29,,,,Draft quote: repair roof flashing around chimney for customer C123,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q025,v1.3,2026-10-15,development,,0.94,,,,Draft quote: replace leaking water heater 50 gallon for customer C124,Quote drafted with line items and total,
+eval,q026,v1.3,2026-10-15,development,,0.99,,,,Draft quote: install outdoor tap and isolation valve for customer C125,Quote drafted with line items and total,
+eval,q027,v1.3,2026-10-15,development,,1.00,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C126,Quote drafted with line items and total,
+eval,q028,v1.3,2026-10-15,development,,0.86,,,,Draft quote: service gas boiler and replace thermocouple for customer C127,Quote drafted with line items and total,
+eval,q029,v1.3,2026-10-15,development,,0.71,,,,Draft quote: fit new consumer unit with surge protection for customer C128,Quote drafted with line items and total,
+eval,q030,v1.3,2026-10-15,development,,0.83,,,,Draft quote: unblock main drain and camera survey for customer C129,Quote drafted with line items and total,
+eval,q031,v1.3,2026-10-15,development,,0.35,,,,Draft quote: replace bathroom extractor fan for customer C130,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q032,v1.3,2026-10-15,development,,0.70,,,,Draft quote: repair roof flashing around chimney for customer C131,Quote drafted with line items and total,
+eval,q033,v1.3,2026-10-15,development,,0.51,,,,Draft quote: replace leaking water heater 50 gallon for customer C132,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q034,v1.3,2026-10-15,development,,0.53,,,,Draft quote: install outdoor tap and isolation valve for customer C133,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q035,v1.3,2026-10-15,development,,0.93,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C134,Quote drafted with line items and total,
+eval,q036,v1.3,2026-10-15,development,,0.77,,,,Draft quote: service gas boiler and replace thermocouple for customer C135,Quote drafted with line items and total,
+eval,q037,v1.3,2026-10-15,development,,0.51,,,,Draft quote: fit new consumer unit with surge protection for customer C136,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q038,v1.3,2026-10-15,development,,0.21,,,,Draft quote: unblock main drain and camera survey for customer C137,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q039,v1.3,2026-10-15,development,,0.84,,,,Draft quote: replace bathroom extractor fan for customer C138,Quote drafted with line items and total,
+eval,q040,v1.3,2026-10-15,development,,0.40,,,,Draft quote: repair roof flashing around chimney for customer C139,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q041,v1.3,2026-10-15,development,,0.75,,,,Draft quote: replace leaking water heater 50 gallon for customer C140,Quote drafted with line items and total,
+eval,q042,v1.3,2026-10-15,development,,0.76,,,,Draft quote: install outdoor tap and isolation valve for customer C141,Quote drafted with line items and total,
+eval,q043,v1.3,2026-10-15,development,,0.98,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C142,Quote drafted with line items and total,
+eval,q044,v1.3,2026-10-15,development,,0.72,,,,Draft quote: service gas boiler and replace thermocouple for customer C143,Quote drafted with line items and total,
+eval,q045,v1.3,2026-10-15,development,,0.48,,,,Draft quote: fit new consumer unit with surge protection for customer C144,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q046,v1.3,2026-10-15,development,,0.99,,,,Draft quote: unblock main drain and camera survey for customer C145,Quote drafted with line items and total,
+eval,q047,v1.3,2026-10-15,development,,0.43,,,,Draft quote: replace bathroom extractor fan for customer C146,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q048,v1.3,2026-10-15,development,,0.73,,,,Draft quote: repair roof flashing around chimney for customer C147,Quote drafted with line items and total,
+eval,q049,v1.3,2026-10-15,development,,0.75,,,,Draft quote: replace leaking water heater 50 gallon for customer C148,Quote drafted with line items and total,
+eval,q050,v1.3,2026-10-15,development,,0.84,,,,Draft quote: install outdoor tap and isolation valve for customer C149,Quote drafted with line items and total,
+eval,q051,v1.3,2026-10-15,development,,0.92,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C150,Quote drafted with line items and total,
+eval,q052,v1.3,2026-10-15,development,,0.86,,,,Draft quote: service gas boiler and replace thermocouple for customer C151,Quote drafted with line items and total,
+eval,q053,v1.3,2026-10-15,development,,0.75,,,,Draft quote: fit new consumer unit with surge protection for customer C152,Quote drafted with line items and total,
+eval,q054,v1.3,2026-10-15,development,,0.51,,,,Draft quote: unblock main drain and camera survey for customer C153,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q055,v1.3,2026-10-15,development,,0.95,,,,Draft quote: replace bathroom extractor fan for customer C154,Quote drafted with line items and total,
+eval,q056,v1.3,2026-10-15,development,,0.76,,,,Draft quote: repair roof flashing around chimney for customer C155,Quote drafted with line items and total,
+eval,q057,v1.3,2026-10-15,development,,0.87,,,,Draft quote: replace leaking water heater 50 gallon for customer C156,Quote drafted with line items and total,
+eval,q058,v1.3,2026-10-15,development,,0.52,,,,Draft quote: install outdoor tap and isolation valve for customer C157,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q059,v1.3,2026-10-15,development,,0.27,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C158,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q060,v1.3,2026-10-15,development,,0.88,,,,Draft quote: service gas boiler and replace thermocouple for customer C159,Quote drafted with line items and total,
+eval,q061,v1.3,2026-10-15,development,,0.96,,,,Draft quote: fit new consumer unit with surge protection for customer C160,Quote drafted with line items and total,
+eval,q062,v1.3,2026-10-15,development,,0.98,,,,Draft quote: unblock main drain and camera survey for customer C161,Quote drafted with line items and total,
+eval,q063,v1.3,2026-10-15,development,,0.94,,,,Draft quote: replace bathroom extractor fan for customer C162,Quote drafted with line items and total,
+eval,q064,v1.3,2026-10-15,development,,0.90,,,,Draft quote: repair roof flashing around chimney for customer C163,Quote drafted with line items and total,
+eval,q065,v1.3,2026-10-15,development,,0.21,,,,Draft quote: replace leaking water heater 50 gallon for customer C164,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q066,v1.3,2026-10-15,development,,0.75,,,,Draft quote: install outdoor tap and isolation valve for customer C165,Quote drafted with line items and total,
+eval,q067,v1.3,2026-10-15,development,,0.89,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C166,Quote drafted with line items and total,
+eval,q068,v1.3,2026-10-15,development,,1.00,,,,Draft quote: service gas boiler and replace thermocouple for customer C167,Quote drafted with line items and total,
+eval,q069,v1.3,2026-10-15,development,,0.91,,,,Draft quote: fit new consumer unit with surge protection for customer C168,Quote drafted with line items and total,
+eval,q070,v1.3,2026-10-15,holdout,,0.98,,,,Draft quote: unblock main drain and camera survey for customer C169,Quote drafted with line items and total,
+eval,q071,v1.3,2026-10-15,holdout,,0.79,,,,Draft quote: replace bathroom extractor fan for customer C170,Quote drafted with line items and total,
+eval,q072,v1.3,2026-10-15,holdout,,0.83,,,,Draft quote: repair roof flashing around chimney for customer C171,Quote drafted with line items and total,
+eval,q073,v1.3,2026-10-15,holdout,,0.75,,,,Draft quote: replace leaking water heater 50 gallon for customer C172,Quote drafted with line items and total,
+eval,q074,v1.3,2026-10-15,holdout,,0.97,,,,Draft quote: install outdoor tap and isolation valve for customer C173,Quote drafted with line items and total,
+eval,q075,v1.3,2026-10-15,holdout,,0.84,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C174,Quote drafted with line items and total,
+eval,q076,v1.3,2026-10-15,holdout,,0.20,,,,Draft quote: service gas boiler and replace thermocouple for customer C175,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q077,v1.3,2026-10-15,holdout,,0.37,,,,Draft quote: fit new consumer unit with surge protection for customer C176,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q078,v1.3,2026-10-15,holdout,,0.40,,,,Draft quote: unblock main drain and camera survey for customer C177,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q079,v1.3,2026-10-15,holdout,,0.88,,,,Draft quote: replace bathroom extractor fan for customer C178,Quote drafted with line items and total,
+eval,q080,v1.3,2026-10-15,holdout,,0.48,,,,Draft quote: repair roof flashing around chimney for customer C179,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q081,v1.3,2026-10-15,holdout,,0.40,,,,Draft quote: replace leaking water heater 50 gallon for customer C180,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q082,v1.3,2026-10-15,holdout,,0.91,,,,Draft quote: install outdoor tap and isolation valve for customer C181,Quote drafted with line items and total,
+eval,q083,v1.3,2026-10-15,holdout,,0.84,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C182,Quote drafted with line items and total,
+eval,q084,v1.3,2026-10-15,holdout,,0.76,,,,Draft quote: service gas boiler and replace thermocouple for customer C183,Quote drafted with line items and total,
+eval,q085,v1.3,2026-10-15,holdout,,0.83,,,,Draft quote: fit new consumer unit with surge protection for customer C184,Quote drafted with line items and total,
+eval,q086,v1.3,2026-10-15,holdout,,0.71,,,,Draft quote: unblock main drain and camera survey for customer C185,Quote drafted with line items and total,
+eval,q087,v1.3,2026-10-15,holdout,,0.84,,,,Draft quote: replace bathroom extractor fan for customer C186,Quote drafted with line items and total,
+eval,q088,v1.3,2026-10-15,holdout,,0.92,,,,Draft quote: repair roof flashing around chimney for customer C187,Quote drafted with line items and total,
+eval,q089,v1.3,2026-10-15,holdout,,0.79,,,,Draft quote: replace leaking water heater 50 gallon for customer C188,Quote drafted with line items and total,
+eval,q090,v1.3,2026-10-15,development,,0.53,,,,Draft quote: install outdoor tap and isolation valve for customer C189,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q091,v1.3,2026-10-15,development,,0.82,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C190,Quote drafted with line items and total,
+eval,q092,v1.3,2026-10-15,development,,0.22,,,,Draft quote: service gas boiler and replace thermocouple for customer C191,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q093,v1.3,2026-10-15,development,,0.86,,,,Draft quote: fit new consumer unit with surge protection for customer C192,Quote drafted with line items and total,
+eval,q094,v1.3,2026-10-15,development,,0.37,,,,Draft quote: unblock main drain and camera survey for customer C193,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q095,v1.3,2026-10-15,development,,0.97,,,,Draft quote: replace bathroom extractor fan for customer C194,Quote drafted with line items and total,
+eval,q096,v1.3,2026-10-15,development,,0.72,,,,Draft quote: repair roof flashing around chimney for customer C195,Quote drafted with line items and total,
+eval,q097,v1.3,2026-10-15,development,,0.95,,,,Draft quote: replace leaking water heater 50 gallon for customer C196,Quote drafted with line items and total,
+eval,q098,v1.3,2026-10-15,development,,0.50,,,,Draft quote: install outdoor tap and isolation valve for customer C197,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q099,v1.3,2026-10-15,development,,0.72,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C198,Quote drafted with line items and total,
+eval,q100,v1.3,2026-10-15,development,,0.86,,,,Draft quote: service gas boiler and replace thermocouple for customer C199,Quote drafted with line items and total,
+production,t0001,v1.3,2026-10-15,,,,true,false,0.0400,Task 1: install outdoor tap and isolation valve,Sent,
+production,t0002,v1.3,2026-10-15,,,,true,true,0.0344,Task 2: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0003,v1.3,2026-10-15,,,,true,false,0.0414,Task 3: service gas boiler and replace thermocouple,Sent,
+production,t0004,v1.3,2026-10-15,,,,true,true,0.0142,Task 4: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0005,v1.3,2026-10-15,,,,false,true,0.0198,Task 5: unblock main drain and camera survey,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0006,v1.3,2026-10-15,,,,true,true,0.0357,Task 6: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0007,v1.3,2026-10-15,,,,true,true,0.0278,Task 7: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0008,v1.3,2026-10-15,,,,true,false,0.0180,Task 8: replace leaking water heater 50 gallon,Sent,
+production,t0009,v1.3,2026-10-15,,,,true,true,0.0263,Task 9: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0010,v1.3,2026-10-15,,,,true,false,0.0361,Task 10: rewire kitchen ring main and add two sockets,Sent,
+production,t0011,v1.3,2026-10-15,,,,true,false,0.0256,Task 11: service gas boiler and replace thermocouple,Sent,
+production,t0012,v1.3,2026-10-15,,,,true,false,0.0375,Task 12: fit new consumer unit with surge protection,Sent,
+production,t0013,v1.3,2026-10-15,,,,true,false,0.0126,Task 13: unblock main drain and camera survey,Sent,
+production,t0014,v1.3,2026-10-15,,,,true,false,0.0320,Task 14: replace bathroom extractor fan,Sent,
+production,t0015,v1.3,2026-10-15,,,,true,true,0.0427,Task 15: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0016,v1.3,2026-10-15,,,,true,false,0.0341,Task 16: replace leaking water heater 50 gallon,Sent,
+production,t0017,v1.3,2026-10-15,,,,true,false,0.0220,Task 17: install outdoor tap and isolation valve,Sent,
+production,t0018,v1.3,2026-10-15,,,,true,false,0.0312,Task 18: rewire kitchen ring main and add two sockets,Sent,
+production,t0019,v1.3,2026-10-15,,,,true,false,0.0373,Task 19: service gas boiler and replace thermocouple,Sent,
+production,t0020,v1.3,2026-10-15,,,,true,true,0.0311,Task 20: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0021,v1.3,2026-10-15,,,,true,false,0.0417,Task 21: unblock main drain and camera survey,Sent,
+production,t0022,v1.3,2026-10-15,,,,true,true,0.0358,Task 22: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0023,v1.3,2026-10-15,,,,true,false,0.0245,Task 23: repair roof flashing around chimney,Sent,
+production,t0024,v1.3,2026-10-15,,,,false,true,0.0339,Task 24: replace leaking water heater 50 gallon,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0025,v1.3,2026-10-15,,,,true,true,0.0201,Task 25: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0026,v1.3,2026-10-15,,,,true,false,0.0216,Task 26: rewire kitchen ring main and add two sockets,Sent,
+production,t0027,v1.3,2026-10-15,,,,true,true,0.0254,Task 27: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0028,v1.3,2026-10-15,,,,true,true,0.0224,Task 28: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0029,v1.3,2026-10-15,,,,true,true,0.0223,Task 29: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0030,v1.3,2026-10-15,,,,true,true,0.0400,Task 30: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0031,v1.3,2026-10-15,,,,true,false,0.0135,Task 31: repair roof flashing around chimney,Sent,
+production,t0032,v1.3,2026-10-15,,,,true,false,0.0293,Task 32: replace leaking water heater 50 gallon,Sent,
+production,t0033,v1.3,2026-10-15,,,,true,false,0.0223,Task 33: install outdoor tap and isolation valve,Sent,
+production,t0034,v1.3,2026-10-15,,,,true,false,0.0371,Task 34: rewire kitchen ring main and add two sockets,Sent,
+production,t0035,v1.3,2026-10-15,,,,true,false,0.0329,Task 35: service gas boiler and replace thermocouple,Sent,
+production,t0036,v1.3,2026-10-15,,,,true,false,0.0300,Task 36: fit new consumer unit with surge protection,Sent,
+production,t0037,v1.3,2026-10-15,,,,true,true,0.0298,Task 37: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0038,v1.3,2026-10-15,,,,true,false,0.0285,Task 38: replace bathroom extractor fan,Sent,
+production,t0039,v1.3,2026-10-15,,,,true,false,0.0225,Task 39: repair roof flashing around chimney,Sent,
+production,t0040,v1.3,2026-10-15,,,,true,true,0.0243,Task 40: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0041,v1.3,2026-10-15,,,,true,true,0.0296,Task 41: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0042,v1.3,2026-10-15,,,,true,false,0.0281,Task 42: rewire kitchen ring main and add two sockets,Sent,
+production,t0043,v1.3,2026-10-15,,,,true,false,0.0274,Task 43: service gas boiler and replace thermocouple,Sent,
+production,t0044,v1.3,2026-10-15,,,,true,false,0.0299,Task 44: fit new consumer unit with surge protection,Sent,
+production,t0045,v1.3,2026-10-15,,,,false,true,0.0390,Task 45: unblock main drain and camera survey,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0046,v1.3,2026-10-15,,,,true,true,0.0232,Task 46: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0047,v1.3,2026-10-15,,,,true,true,0.0432,Task 47: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0048,v1.3,2026-10-15,,,,true,true,0.0279,Task 48: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0049,v1.3,2026-10-15,,,,true,true,0.0407,Task 49: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0050,v1.3,2026-10-15,,,,true,true,0.0292,Task 50: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0051,v1.3,2026-10-15,,,,true,true,0.0273,Task 51: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0052,v1.3,2026-10-15,,,,true,false,0.0301,Task 52: fit new consumer unit with surge protection,Sent,
+production,t0053,v1.3,2026-10-15,,,,true,false,0.0193,Task 53: unblock main drain and camera survey,Sent,
+production,t0054,v1.3,2026-10-15,,,,true,false,0.0473,Task 54: replace bathroom extractor fan,Sent,
+production,t0055,v1.3,2026-10-15,,,,true,false,0.0378,Task 55: repair roof flashing around chimney,Sent,
+production,t0056,v1.3,2026-10-15,,,,true,false,0.0288,Task 56: replace leaking water heater 50 gallon,Sent,
+production,t0057,v1.3,2026-10-15,,,,false,true,0.0295,Task 57: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0058,v1.3,2026-10-15,,,,true,false,0.0324,Task 58: rewire kitchen ring main and add two sockets,Sent,
+production,t0059,v1.3,2026-10-15,,,,true,false,0.0293,Task 59: service gas boiler and replace thermocouple,Sent,
+production,t0060,v1.3,2026-10-15,,,,true,false,0.0339,Task 60: fit new consumer unit with surge protection,Sent,
+production,t0061,v1.3,2026-10-15,,,,true,false,0.0316,Task 61: unblock main drain and camera survey,Sent,
+production,t0062,v1.3,2026-10-15,,,,false,true,0.0297,Task 62: replace bathroom extractor fan,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0063,v1.3,2026-10-15,,,,true,true,0.0404,Task 63: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0064,v1.3,2026-10-15,,,,true,false,0.0315,Task 64: replace leaking water heater 50 gallon,Sent,
+production,t0065,v1.3,2026-10-15,,,,true,false,0.0232,Task 65: install outdoor tap and isolation valve,Sent,
+production,t0066,v1.3,2026-10-15,,,,false,true,0.0344,Task 66: rewire kitchen ring main and add two sockets,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0067,v1.3,2026-10-15,,,,true,false,0.0219,Task 67: service gas boiler and replace thermocouple,Sent,
+production,t0068,v1.3,2026-10-15,,,,true,false,0.0413,Task 68: fit new consumer unit with surge protection,Sent,
+production,t0069,v1.3,2026-10-15,,,,true,true,0.0240,Task 69: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0070,v1.3,2026-10-15,,,,true,false,0.0328,Task 70: replace bathroom extractor fan,Sent,
+production,t0071,v1.3,2026-10-15,,,,true,false,0.0420,Task 71: repair roof flashing around chimney,Sent,
+production,t0072,v1.3,2026-10-15,,,,true,false,0.0254,Task 72: replace leaking water heater 50 gallon,Sent,
+production,t0073,v1.3,2026-10-15,,,,true,false,0.0115,Task 73: install outdoor tap and isolation valve,Sent,
+production,t0074,v1.3,2026-10-15,,,,true,false,0.0242,Task 74: rewire kitchen ring main and add two sockets,Sent,
+production,t0075,v1.3,2026-10-15,,,,true,false,0.0304,Task 75: service gas boiler and replace thermocouple,Sent,
+production,t0076,v1.3,2026-10-15,,,,false,true,0.0320,Task 76: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0077,v1.3,2026-10-15,,,,true,false,0.0323,Task 77: unblock main drain and camera survey,Sent,
+production,t0078,v1.3,2026-10-15,,,,true,false,0.0246,Task 78: replace bathroom extractor fan,Sent,
+production,t0079,v1.3,2026-10-15,,,,true,false,0.0385,Task 79: repair roof flashing around chimney,Sent,
+production,t0080,v1.3,2026-10-15,,,,true,false,0.0245,Task 80: replace leaking water heater 50 gallon,Sent,
+production,t0081,v1.3,2026-10-15,,,,true,false,0.0256,Task 81: install outdoor tap and isolation valve,Sent,
+production,t0082,v1.3,2026-10-15,,,,true,true,0.0130,Task 82: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0083,v1.3,2026-10-15,,,,true,true,0.0230,Task 83: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0084,v1.3,2026-10-15,,,,true,false,0.0377,Task 84: fit new consumer unit with surge protection,Sent,
+production,t0085,v1.3,2026-10-15,,,,true,false,0.0315,Task 85: unblock main drain and camera survey,Sent,
+production,t0086,v1.3,2026-10-15,,,,true,false,0.0440,Task 86: replace bathroom extractor fan,Sent,
+production,t0087,v1.3,2026-10-15,,,,true,false,0.0363,Task 87: repair roof flashing around chimney,Sent,
+production,t0088,v1.3,2026-10-15,,,,true,true,0.0369,Task 88: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0089,v1.3,2026-10-15,,,,false,true,0.0373,Task 89: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0090,v1.3,2026-10-15,,,,true,false,0.0307,Task 90: rewire kitchen ring main and add two sockets,Sent,
+production,t0091,v1.3,2026-10-15,,,,true,false,0.0283,Task 91: service gas boiler and replace thermocouple,Sent,
+production,t0092,v1.3,2026-10-15,,,,false,true,0.0222,Task 92: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0093,v1.3,2026-10-15,,,,true,true,0.0384,Task 93: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0094,v1.3,2026-10-15,,,,true,false,0.0269,Task 94: replace bathroom extractor fan,Sent,
+production,t0095,v1.3,2026-10-15,,,,true,false,0.0327,Task 95: repair roof flashing around chimney,Sent,
+production,t0096,v1.3,2026-10-15,,,,true,false,0.0347,Task 96: replace leaking water heater 50 gallon,Sent,
+production,t0097,v1.3,2026-10-15,,,,true,true,0.0396,Task 97: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0098,v1.3,2026-10-15,,,,true,false,0.0214,Task 98: rewire kitchen ring main and add two sockets,Sent,
+production,t0099,v1.3,2026-10-15,,,,true,false,0.0157,Task 99: service gas boiler and replace thermocouple,Sent,
+production,t0100,v1.3,2026-10-15,,,,false,true,0.0325,Task 100: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0101,v1.3,2026-10-15,,,,true,false,0.0197,Task 101: unblock main drain and camera survey,Sent,
+production,t0102,v1.3,2026-10-15,,,,true,true,0.0270,Task 102: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0103,v1.3,2026-10-15,,,,true,false,0.0513,Task 103: repair roof flashing around chimney,Sent,
+production,t0104,v1.3,2026-10-15,,,,false,true,0.0204,Task 104: replace leaking water heater 50 gallon,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0105,v1.3,2026-10-15,,,,true,true,0.0324,Task 105: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0106,v1.3,2026-10-15,,,,true,false,0.0370,Task 106: rewire kitchen ring main and add two sockets,Sent,
+production,t0107,v1.3,2026-10-15,,,,true,true,0.0247,Task 107: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0108,v1.3,2026-10-15,,,,true,false,0.0349,Task 108: fit new consumer unit with surge protection,Sent,
+production,t0109,v1.3,2026-10-15,,,,true,true,0.0354,Task 109: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0110,v1.3,2026-10-15,,,,true,false,0.0398,Task 110: replace bathroom extractor fan,Sent,
+production,t0111,v1.3,2026-10-15,,,,false,true,0.0425,Task 111: repair roof flashing around chimney,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0112,v1.3,2026-10-15,,,,false,true,0.0447,Task 112: replace leaking water heater 50 gallon,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0113,v1.3,2026-10-15,,,,false,true,0.0343,Task 113: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0114,v1.3,2026-10-15,,,,true,false,0.0259,Task 114: rewire kitchen ring main and add two sockets,Sent,
+production,t0115,v1.3,2026-10-15,,,,true,true,0.0278,Task 115: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0116,v1.3,2026-10-15,,,,true,false,0.0363,Task 116: fit new consumer unit with surge protection,Sent,
+production,t0117,v1.3,2026-10-15,,,,true,false,0.0152,Task 117: unblock main drain and camera survey,Sent,
+production,t0118,v1.3,2026-10-15,,,,false,true,0.0301,Task 118: replace bathroom extractor fan,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0119,v1.3,2026-10-15,,,,true,false,0.0396,Task 119: repair roof flashing around chimney,Sent,
+production,t0120,v1.3,2026-10-15,,,,true,false,0.0122,Task 120: replace leaking water heater 50 gallon,Sent,
+production,t0121,v1.3,2026-10-15,,,,true,true,0.0327,Task 121: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0122,v1.3,2026-10-15,,,,true,false,0.0153,Task 122: rewire kitchen ring main and add two sockets,Sent,
+production,t0123,v1.3,2026-10-15,,,,true,false,0.0458,Task 123: service gas boiler and replace thermocouple,Sent,
+production,t0124,v1.3,2026-10-15,,,,true,false,0.0327,Task 124: fit new consumer unit with surge protection,Sent,
+production,t0125,v1.3,2026-10-15,,,,true,true,0.0402,Task 125: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0126,v1.3,2026-10-15,,,,true,true,0.0271,Task 126: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0127,v1.3,2026-10-15,,,,true,true,0.0241,Task 127: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0128,v1.3,2026-10-15,,,,true,false,0.0287,Task 128: replace leaking water heater 50 gallon,Sent,
+production,t0129,v1.3,2026-10-15,,,,true,true,0.0268,Task 129: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0130,v1.3,2026-10-15,,,,true,false,0.0408,Task 130: rewire kitchen ring main and add two sockets,Sent,
+production,t0131,v1.3,2026-10-15,,,,true,false,0.0333,Task 131: service gas boiler and replace thermocouple,Sent,
+production,t0132,v1.3,2026-10-15,,,,true,false,0.0202,Task 132: fit new consumer unit with surge protection,Sent,
+production,t0133,v1.3,2026-10-15,,,,true,true,0.0420,Task 133: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0134,v1.3,2026-10-15,,,,true,false,0.0378,Task 134: replace bathroom extractor fan,Sent,
+production,t0135,v1.3,2026-10-15,,,,true,false,0.0296,Task 135: repair roof flashing around chimney,Sent,
+production,t0136,v1.3,2026-10-15,,,,true,false,0.0281,Task 136: replace leaking water heater 50 gallon,Sent,
+production,t0137,v1.3,2026-10-15,,,,false,true,0.0360,Task 137: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0138,v1.3,2026-10-15,,,,true,false,0.0411,Task 138: rewire kitchen ring main and add two sockets,Sent,
+production,t0139,v1.3,2026-10-15,,,,false,true,0.0256,Task 139: service gas boiler and replace thermocouple,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0140,v1.3,2026-10-15,,,,true,true,0.0399,Task 140: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0141,v1.3,2026-10-15,,,,false,true,0.0280,Task 141: unblock main drain and camera survey,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0142,v1.3,2026-10-15,,,,true,false,0.0213,Task 142: replace bathroom extractor fan,Sent,
+production,t0143,v1.3,2026-10-15,,,,true,true,0.0366,Task 143: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0144,v1.3,2026-10-15,,,,true,true,0.0518,Task 144: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0145,v1.3,2026-10-15,,,,true,true,0.0322,Task 145: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0146,v1.3,2026-10-15,,,,true,false,0.0171,Task 146: rewire kitchen ring main and add two sockets,Sent,
+production,t0147,v1.3,2026-10-15,,,,true,false,0.0291,Task 147: service gas boiler and replace thermocouple,Sent,
+production,t0148,v1.3,2026-10-15,,,,true,false,0.0277,Task 148: fit new consumer unit with surge protection,Sent,
+production,t0149,v1.3,2026-10-15,,,,true,false,0.0377,Task 149: unblock main drain and camera survey,Sent,
+production,t0150,v1.3,2026-10-15,,,,true,false,0.0177,Task 150: replace bathroom extractor fan,Sent,
+production,t0151,v1.3,2026-10-15,,,,true,false,0.0319,Task 151: repair roof flashing around chimney,Sent,
+production,t0152,v1.3,2026-10-15,,,,true,false,0.0319,Task 152: replace leaking water heater 50 gallon,Sent,
+production,t0153,v1.3,2026-10-15,,,,true,true,0.0290,Task 153: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0154,v1.3,2026-10-15,,,,true,false,0.0311,Task 154: rewire kitchen ring main and add two sockets,Sent,
+production,t0155,v1.3,2026-10-15,,,,true,true,0.0336,Task 155: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0156,v1.3,2026-10-15,,,,true,true,0.0389,Task 156: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0157,v1.3,2026-10-15,,,,true,false,0.0284,Task 157: unblock main drain and camera survey,Sent,
+production,t0158,v1.3,2026-10-15,,,,true,false,0.0284,Task 158: replace bathroom extractor fan,Sent,
+production,t0159,v1.3,2026-10-15,,,,true,false,0.0260,Task 159: repair roof flashing around chimney,Sent,
+production,t0160,v1.3,2026-10-15,,,,true,true,0.0222,Task 160: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0161,v1.3,2026-10-15,,,,false,true,0.0359,Task 161: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0162,v1.3,2026-10-15,,,,true,false,0.0207,Task 162: rewire kitchen ring main and add two sockets,Sent,
+production,t0163,v1.3,2026-10-15,,,,true,false,0.0256,Task 163: service gas boiler and replace thermocouple,Sent,
+production,t0164,v1.3,2026-10-15,,,,true,false,0.0327,Task 164: fit new consumer unit with surge protection,Sent,
+production,t0165,v1.3,2026-10-15,,,,true,false,0.0269,Task 165: unblock main drain and camera survey,Sent,
+production,t0166,v1.3,2026-10-15,,,,true,false,0.0226,Task 166: replace bathroom extractor fan,Sent,
+production,t0167,v1.3,2026-10-15,,,,false,true,0.0371,Task 167: repair roof flashing around chimney,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0168,v1.3,2026-10-15,,,,true,true,0.0272,Task 168: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0169,v1.3,2026-10-15,,,,true,true,0.0404,Task 169: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0170,v1.3,2026-10-15,,,,true,false,0.0295,Task 170: rewire kitchen ring main and add two sockets,Sent,
+production,t0171,v1.3,2026-10-15,,,,true,false,0.0069,Task 171: service gas boiler and replace thermocouple,Sent,
+production,t0172,v1.3,2026-10-15,,,,true,true,0.0363,Task 172: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0173,v1.3,2026-10-15,,,,true,true,0.0311,Task 173: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0174,v1.3,2026-10-15,,,,true,false,0.0443,Task 174: replace bathroom extractor fan,Sent,
+production,t0175,v1.3,2026-10-15,,,,true,true,0.0316,Task 175: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0176,v1.3,2026-10-15,,,,true,false,0.0179,Task 176: replace leaking water heater 50 gallon,Sent,
+production,t0177,v1.3,2026-10-15,,,,true,false,0.0280,Task 177: install outdoor tap and isolation valve,Sent,
+production,t0178,v1.3,2026-10-15,,,,true,false,0.0354,Task 178: rewire kitchen ring main and add two sockets,Sent,
+production,t0179,v1.3,2026-10-15,,,,true,false,0.0217,Task 179: service gas boiler and replace thermocouple,Sent,
+production,t0180,v1.3,2026-10-15,,,,true,true,0.0324,Task 180: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0181,v1.3,2026-10-15,,,,true,false,0.0484,Task 181: unblock main drain and camera survey,Sent,
+production,t0182,v1.3,2026-10-15,,,,true,false,0.0223,Task 182: replace bathroom extractor fan,Sent,
+production,t0183,v1.3,2026-10-15,,,,true,false,0.0251,Task 183: repair roof flashing around chimney,Sent,
+production,t0184,v1.3,2026-10-15,,,,true,true,0.0205,Task 184: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0185,v1.3,2026-10-15,,,,false,true,0.0174,Task 185: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0186,v1.3,2026-10-15,,,,true,true,0.0389,Task 186: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0187,v1.3,2026-10-15,,,,true,false,0.0338,Task 187: service gas boiler and replace thermocouple,Sent,
+production,t0188,v1.3,2026-10-15,,,,false,true,0.0419,Task 188: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0189,v1.3,2026-10-15,,,,true,false,0.0304,Task 189: unblock main drain and camera survey,Sent,
+production,t0190,v1.3,2026-10-15,,,,true,false,0.0370,Task 190: replace bathroom extractor fan,Sent,
+production,t0191,v1.3,2026-10-15,,,,true,false,0.0338,Task 191: repair roof flashing around chimney,Sent,
+production,t0192,v1.3,2026-10-15,,,,true,true,0.0373,Task 192: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0193,v1.3,2026-10-15,,,,true,true,0.0361,Task 193: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0194,v1.3,2026-10-15,,,,true,true,0.0289,Task 194: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0195,v1.3,2026-10-15,,,,true,false,0.0304,Task 195: service gas boiler and replace thermocouple,Sent,
+production,t0196,v1.3,2026-10-15,,,,false,true,0.0498,Task 196: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0197,v1.3,2026-10-15,,,,true,false,0.0474,Task 197: unblock main drain and camera survey,Sent,
+production,t0198,v1.3,2026-10-15,,,,true,false,0.0127,Task 198: replace bathroom extractor fan,Sent,
+production,t0199,v1.3,2026-10-15,,,,true,false,0.0333,Task 199: repair roof flashing around chimney,Sent,
+production,t0200,v1.3,2026-10-15,,,,true,false,0.0209,Task 200: replace leaking water heater 50 gallon,Sent,
+eval,q001,v1.4,2026-11-15,development,,0.94,,,,Draft quote: replace leaking water heater 50 gallon for customer C100,Quote drafted with line items and total,
+eval,q002,v1.4,2026-11-15,development,,0.41,,,,Draft quote: install outdoor tap and isolation valve for customer C101,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q003,v1.4,2026-11-15,development,,0.91,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C102,Quote drafted with line items and total,
+eval,q004,v1.4,2026-11-15,holdout,,0.71,,,,Draft quote: service gas boiler and replace thermocouple for customer C103,Quote drafted with line items and total,
+eval,q005,v1.4,2026-11-15,holdout,,0.96,,,,Draft quote: fit new consumer unit with surge protection for customer C104,Quote drafted with line items and total,
+eval,q006,v1.4,2026-11-15,holdout,,0.42,,,,Draft quote: unblock main drain and camera survey for customer C105,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q007,v1.4,2026-11-15,holdout,,0.25,,,,Draft quote: replace bathroom extractor fan for customer C106,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q008,v1.4,2026-11-15,holdout,,0.82,,,,Draft quote: repair roof flashing around chimney for customer C107,Quote drafted with line items and total,
+eval,q009,v1.4,2026-11-15,holdout,,0.36,,,,Draft quote: replace leaking water heater 50 gallon for customer C108,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q010,v1.4,2026-11-15,development,,0.95,,,,Draft quote: install outdoor tap and isolation valve for customer C109,Quote drafted with line items and total,
+eval,q011,v1.4,2026-11-15,development,,0.75,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C110,Quote drafted with line items and total,
+eval,q012,v1.4,2026-11-15,development,,0.75,,,,Draft quote: service gas boiler and replace thermocouple for customer C111,Quote drafted with line items and total,
+eval,q013,v1.4,2026-11-15,development,,0.78,,,,Draft quote: fit new consumer unit with surge protection for customer C112,Quote drafted with line items and total,
+eval,q014,v1.4,2026-11-15,development,,0.80,,,,Draft quote: unblock main drain and camera survey for customer C113,Quote drafted with line items and total,
+eval,q015,v1.4,2026-11-15,development,,0.76,,,,Draft quote: replace bathroom extractor fan for customer C114,Quote drafted with line items and total,
+eval,q016,v1.4,2026-11-15,holdout,,0.84,,,,Draft quote: repair roof flashing around chimney for customer C115,Quote drafted with line items and total,
+eval,q017,v1.4,2026-11-15,holdout,,0.38,,,,Draft quote: replace leaking water heater 50 gallon for customer C116,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q018,v1.4,2026-11-15,holdout,,0.72,,,,Draft quote: install outdoor tap and isolation valve for customer C117,Quote drafted with line items and total,
+eval,q019,v1.4,2026-11-15,holdout,,0.88,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C118,Quote drafted with line items and total,
+eval,q020,v1.4,2026-11-15,development,,0.96,,,,Draft quote: service gas boiler and replace thermocouple for customer C119,Quote drafted with line items and total,
+eval,q021,v1.4,2026-11-15,development,,0.76,,,,Draft quote: fit new consumer unit with surge protection for customer C120,Quote drafted with line items and total,
+eval,q022,v1.4,2026-11-15,development,,0.92,,,,Draft quote: unblock main drain and camera survey for customer C121,Quote drafted with line items and total,
+eval,q023,v1.4,2026-11-15,development,,0.78,,,,Draft quote: replace bathroom extractor fan for customer C122,Quote drafted with line items and total,
+eval,q024,v1.4,2026-11-15,development,,0.93,,,,Draft quote: repair roof flashing around chimney for customer C123,Quote drafted with line items and total,
+eval,q025,v1.4,2026-11-15,development,,0.90,,,,Draft quote: replace leaking water heater 50 gallon for customer C124,Quote drafted with line items and total,
+eval,q026,v1.4,2026-11-15,development,,0.82,,,,Draft quote: install outdoor tap and isolation valve for customer C125,Quote drafted with line items and total,
+eval,q027,v1.4,2026-11-15,development,,0.86,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C126,Quote drafted with line items and total,
+eval,q028,v1.4,2026-11-15,development,,0.85,,,,Draft quote: service gas boiler and replace thermocouple for customer C127,Quote drafted with line items and total,
+eval,q029,v1.4,2026-11-15,development,,0.93,,,,Draft quote: fit new consumer unit with surge protection for customer C128,Quote drafted with line items and total,
+eval,q030,v1.4,2026-11-15,development,,0.95,,,,Draft quote: unblock main drain and camera survey for customer C129,Quote drafted with line items and total,
+eval,q031,v1.4,2026-11-15,development,,0.85,,,,Draft quote: replace bathroom extractor fan for customer C130,Quote drafted with line items and total,
+eval,q032,v1.4,2026-11-15,development,,0.90,,,,Draft quote: repair roof flashing around chimney for customer C131,Quote drafted with line items and total,
+eval,q033,v1.4,2026-11-15,development,,0.92,,,,Draft quote: replace leaking water heater 50 gallon for customer C132,Quote drafted with line items and total,
+eval,q034,v1.4,2026-11-15,development,,0.84,,,,Draft quote: install outdoor tap and isolation valve for customer C133,Quote drafted with line items and total,
+eval,q035,v1.4,2026-11-15,development,,1.00,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C134,Quote drafted with line items and total,
+eval,q036,v1.4,2026-11-15,development,,0.80,,,,Draft quote: service gas boiler and replace thermocouple for customer C135,Quote drafted with line items and total,
+eval,q037,v1.4,2026-11-15,development,,0.72,,,,Draft quote: fit new consumer unit with surge protection for customer C136,Quote drafted with line items and total,
+eval,q038,v1.4,2026-11-15,development,,0.46,,,,Draft quote: unblock main drain and camera survey for customer C137,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q039,v1.4,2026-11-15,development,,0.88,,,,Draft quote: replace bathroom extractor fan for customer C138,Quote drafted with line items and total,
+eval,q040,v1.4,2026-11-15,development,,0.79,,,,Draft quote: repair roof flashing around chimney for customer C139,Quote drafted with line items and total,
+eval,q041,v1.4,2026-11-15,development,,0.71,,,,Draft quote: replace leaking water heater 50 gallon for customer C140,Quote drafted with line items and total,
+eval,q042,v1.4,2026-11-15,development,,0.97,,,,Draft quote: install outdoor tap and isolation valve for customer C141,Quote drafted with line items and total,
+eval,q043,v1.4,2026-11-15,development,,0.84,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C142,Quote drafted with line items and total,
+eval,q044,v1.4,2026-11-15,development,,0.94,,,,Draft quote: service gas boiler and replace thermocouple for customer C143,Quote drafted with line items and total,
+eval,q045,v1.4,2026-11-15,development,,0.87,,,,Draft quote: fit new consumer unit with surge protection for customer C144,Quote drafted with line items and total,
+eval,q046,v1.4,2026-11-15,development,,0.93,,,,Draft quote: unblock main drain and camera survey for customer C145,Quote drafted with line items and total,
+eval,q047,v1.4,2026-11-15,development,,0.72,,,,Draft quote: replace bathroom extractor fan for customer C146,Quote drafted with line items and total,
+eval,q048,v1.4,2026-11-15,development,,0.91,,,,Draft quote: repair roof flashing around chimney for customer C147,Quote drafted with line items and total,
+eval,q049,v1.4,2026-11-15,development,,0.72,,,,Draft quote: replace leaking water heater 50 gallon for customer C148,Quote drafted with line items and total,
+eval,q050,v1.4,2026-11-15,development,,0.95,,,,Draft quote: install outdoor tap and isolation valve for customer C149,Quote drafted with line items and total,
+eval,q051,v1.4,2026-11-15,development,,0.84,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C150,Quote drafted with line items and total,
+eval,q052,v1.4,2026-11-15,development,,0.99,,,,Draft quote: service gas boiler and replace thermocouple for customer C151,Quote drafted with line items and total,
+eval,q053,v1.4,2026-11-15,development,,0.98,,,,Draft quote: fit new consumer unit with surge protection for customer C152,Quote drafted with line items and total,
+eval,q054,v1.4,2026-11-15,development,,0.28,,,,Draft quote: unblock main drain and camera survey for customer C153,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q055,v1.4,2026-11-15,development,,0.84,,,,Draft quote: replace bathroom extractor fan for customer C154,Quote drafted with line items and total,
+eval,q056,v1.4,2026-11-15,development,,0.72,,,,Draft quote: repair roof flashing around chimney for customer C155,Quote drafted with line items and total,
+eval,q057,v1.4,2026-11-15,development,,0.74,,,,Draft quote: replace leaking water heater 50 gallon for customer C156,Quote drafted with line items and total,
+eval,q058,v1.4,2026-11-15,development,,0.42,,,,Draft quote: install outdoor tap and isolation valve for customer C157,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q059,v1.4,2026-11-15,development,,0.33,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C158,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q060,v1.4,2026-11-15,development,,0.98,,,,Draft quote: service gas boiler and replace thermocouple for customer C159,Quote drafted with line items and total,
+eval,q061,v1.4,2026-11-15,development,,0.93,,,,Draft quote: fit new consumer unit with surge protection for customer C160,Quote drafted with line items and total,
+eval,q062,v1.4,2026-11-15,development,,0.80,,,,Draft quote: unblock main drain and camera survey for customer C161,Quote drafted with line items and total,
+eval,q063,v1.4,2026-11-15,development,,0.77,,,,Draft quote: replace bathroom extractor fan for customer C162,Quote drafted with line items and total,
+eval,q064,v1.4,2026-11-15,development,,0.81,,,,Draft quote: repair roof flashing around chimney for customer C163,Quote drafted with line items and total,
+eval,q065,v1.4,2026-11-15,development,,0.96,,,,Draft quote: replace leaking water heater 50 gallon for customer C164,Quote drafted with line items and total,
+eval,q066,v1.4,2026-11-15,development,,0.81,,,,Draft quote: install outdoor tap and isolation valve for customer C165,Quote drafted with line items and total,
+eval,q067,v1.4,2026-11-15,development,,0.91,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C166,Quote drafted with line items and total,
+eval,q068,v1.4,2026-11-15,development,,0.89,,,,Draft quote: service gas boiler and replace thermocouple for customer C167,Quote drafted with line items and total,
+eval,q069,v1.4,2026-11-15,development,,0.80,,,,Draft quote: fit new consumer unit with surge protection for customer C168,Quote drafted with line items and total,
+eval,q070,v1.4,2026-11-15,holdout,,0.74,,,,Draft quote: unblock main drain and camera survey for customer C169,Quote drafted with line items and total,
+eval,q071,v1.4,2026-11-15,holdout,,0.80,,,,Draft quote: replace bathroom extractor fan for customer C170,Quote drafted with line items and total,
+eval,q072,v1.4,2026-11-15,holdout,,0.93,,,,Draft quote: repair roof flashing around chimney for customer C171,Quote drafted with line items and total,
+eval,q073,v1.4,2026-11-15,holdout,,0.96,,,,Draft quote: replace leaking water heater 50 gallon for customer C172,Quote drafted with line items and total,
+eval,q074,v1.4,2026-11-15,holdout,,0.81,,,,Draft quote: install outdoor tap and isolation valve for customer C173,Quote drafted with line items and total,
+eval,q075,v1.4,2026-11-15,holdout,,0.96,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C174,Quote drafted with line items and total,
+eval,q076,v1.4,2026-11-15,holdout,,0.74,,,,Draft quote: service gas boiler and replace thermocouple for customer C175,Quote drafted with line items and total,
+eval,q077,v1.4,2026-11-15,holdout,,0.95,,,,Draft quote: fit new consumer unit with surge protection for customer C176,Quote drafted with line items and total,
+eval,q078,v1.4,2026-11-15,holdout,,0.74,,,,Draft quote: unblock main drain and camera survey for customer C177,Quote drafted with line items and total,
+eval,q079,v1.4,2026-11-15,holdout,,0.75,,,,Draft quote: replace bathroom extractor fan for customer C178,Quote drafted with line items and total,
+eval,q080,v1.4,2026-11-15,holdout,,0.33,,,,Draft quote: repair roof flashing around chimney for customer C179,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q081,v1.4,2026-11-15,holdout,,0.43,,,,Draft quote: replace leaking water heater 50 gallon for customer C180,Quote drafted: tax applied twice to labour line,"Tax charged on labour twice, total too high."
+eval,q082,v1.4,2026-11-15,holdout,,0.93,,,,Draft quote: install outdoor tap and isolation valve for customer C181,Quote drafted with line items and total,
+eval,q083,v1.4,2026-11-15,holdout,,0.95,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C182,Quote drafted with line items and total,
+eval,q084,v1.4,2026-11-15,holdout,,0.94,,,,Draft quote: service gas boiler and replace thermocouple for customer C183,Quote drafted with line items and total,
+eval,q085,v1.4,2026-11-15,holdout,,0.87,,,,Draft quote: fit new consumer unit with surge protection for customer C184,Quote drafted with line items and total,
+eval,q086,v1.4,2026-11-15,holdout,,0.84,,,,Draft quote: unblock main drain and camera survey for customer C185,Quote drafted with line items and total,
+eval,q087,v1.4,2026-11-15,holdout,,0.89,,,,Draft quote: replace bathroom extractor fan for customer C186,Quote drafted with line items and total,
+eval,q088,v1.4,2026-11-15,holdout,,0.77,,,,Draft quote: repair roof flashing around chimney for customer C187,Quote drafted with line items and total,
+eval,q089,v1.4,2026-11-15,holdout,,0.97,,,,Draft quote: replace leaking water heater 50 gallon for customer C188,Quote drafted with line items and total,
+eval,q090,v1.4,2026-11-15,development,,0.70,,,,Draft quote: install outdoor tap and isolation valve for customer C189,Quote drafted with line items and total,
+eval,q091,v1.4,2026-11-15,development,,0.85,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C190,Quote drafted with line items and total,
+eval,q092,v1.4,2026-11-15,development,,1.00,,,,Draft quote: service gas boiler and replace thermocouple for customer C191,Quote drafted with line items and total,
+eval,q093,v1.4,2026-11-15,development,,0.81,,,,Draft quote: fit new consumer unit with surge protection for customer C192,Quote drafted with line items and total,
+eval,q094,v1.4,2026-11-15,development,,0.24,,,,Draft quote: unblock main drain and camera survey for customer C193,Quote drafted: callout fee missing from quote total,Total left out the callout fee.
+eval,q095,v1.4,2026-11-15,development,,0.90,,,,Draft quote: replace bathroom extractor fan for customer C194,Quote drafted with line items and total,
+eval,q096,v1.4,2026-11-15,development,,0.89,,,,Draft quote: repair roof flashing around chimney for customer C195,Quote drafted with line items and total,
+eval,q097,v1.4,2026-11-15,development,,0.89,,,,Draft quote: replace leaking water heater 50 gallon for customer C196,Quote drafted with line items and total,
+eval,q098,v1.4,2026-11-15,development,,0.45,,,,Draft quote: install outdoor tap and isolation valve for customer C197,Quote drafted: quote added part not listed in price book,Added expansion tank; no such line in price book.
+eval,q099,v1.4,2026-11-15,development,,0.80,,,,Draft quote: rewire kitchen ring main and add two sockets for customer C198,Quote drafted with line items and total,
+eval,q100,v1.4,2026-11-15,development,,0.74,,,,Draft quote: service gas boiler and replace thermocouple for customer C199,Quote drafted with line items and total,
+production,t0001,v1.4,2026-11-15,,,,true,false,0.0137,Task 1: install outdoor tap and isolation valve,Sent,
+production,t0002,v1.4,2026-11-15,,,,true,false,0.0178,Task 2: rewire kitchen ring main and add two sockets,Sent,
+production,t0003,v1.4,2026-11-15,,,,true,false,0.0196,Task 3: service gas boiler and replace thermocouple,Sent,
+production,t0004,v1.4,2026-11-15,,,,true,false,0.0215,Task 4: fit new consumer unit with surge protection,Sent,
+production,t0005,v1.4,2026-11-15,,,,true,true,0.0226,Task 5: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0006,v1.4,2026-11-15,,,,true,false,0.0195,Task 6: replace bathroom extractor fan,Sent,
+production,t0007,v1.4,2026-11-15,,,,true,false,0.0336,Task 7: repair roof flashing around chimney,Sent,
+production,t0008,v1.4,2026-11-15,,,,true,false,0.0246,Task 8: replace leaking water heater 50 gallon,Sent,
+production,t0009,v1.4,2026-11-15,,,,true,false,0.0193,Task 9: install outdoor tap and isolation valve,Sent,
+production,t0010,v1.4,2026-11-15,,,,true,false,0.0243,Task 10: rewire kitchen ring main and add two sockets,Sent,
+production,t0011,v1.4,2026-11-15,,,,true,false,0.0228,Task 11: service gas boiler and replace thermocouple,Sent,
+production,t0012,v1.4,2026-11-15,,,,true,false,0.0223,Task 12: fit new consumer unit with surge protection,Sent,
+production,t0013,v1.4,2026-11-15,,,,true,true,0.0276,Task 13: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0014,v1.4,2026-11-15,,,,true,false,0.0218,Task 14: replace bathroom extractor fan,Sent,
+production,t0015,v1.4,2026-11-15,,,,true,false,0.0251,Task 15: repair roof flashing around chimney,Sent,
+production,t0016,v1.4,2026-11-15,,,,true,false,0.0203,Task 16: replace leaking water heater 50 gallon,Sent,
+production,t0017,v1.4,2026-11-15,,,,true,false,0.0267,Task 17: install outdoor tap and isolation valve,Sent,
+production,t0018,v1.4,2026-11-15,,,,true,true,0.0262,Task 18: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0019,v1.4,2026-11-15,,,,true,false,0.0286,Task 19: service gas boiler and replace thermocouple,Sent,
+production,t0020,v1.4,2026-11-15,,,,true,false,0.0196,Task 20: fit new consumer unit with surge protection,Sent,
+production,t0021,v1.4,2026-11-15,,,,true,false,0.0300,Task 21: unblock main drain and camera survey,Sent,
+production,t0022,v1.4,2026-11-15,,,,true,false,0.0300,Task 22: replace bathroom extractor fan,Sent,
+production,t0023,v1.4,2026-11-15,,,,true,false,0.0199,Task 23: repair roof flashing around chimney,Sent,
+production,t0024,v1.4,2026-11-15,,,,true,false,0.0315,Task 24: replace leaking water heater 50 gallon,Sent,
+production,t0025,v1.4,2026-11-15,,,,true,false,0.0329,Task 25: install outdoor tap and isolation valve,Sent,
+production,t0026,v1.4,2026-11-15,,,,true,false,0.0254,Task 26: rewire kitchen ring main and add two sockets,Sent,
+production,t0027,v1.4,2026-11-15,,,,true,false,0.0138,Task 27: service gas boiler and replace thermocouple,Sent,
+production,t0028,v1.4,2026-11-15,,,,true,false,0.0272,Task 28: fit new consumer unit with surge protection,Sent,
+production,t0029,v1.4,2026-11-15,,,,true,false,0.0396,Task 29: unblock main drain and camera survey,Sent,
+production,t0030,v1.4,2026-11-15,,,,true,true,0.0190,Task 30: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0031,v1.4,2026-11-15,,,,true,true,0.0321,Task 31: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0032,v1.4,2026-11-15,,,,true,false,0.0257,Task 32: replace leaking water heater 50 gallon,Sent,
+production,t0033,v1.4,2026-11-15,,,,true,false,0.0234,Task 33: install outdoor tap and isolation valve,Sent,
+production,t0034,v1.4,2026-11-15,,,,true,true,0.0238,Task 34: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0035,v1.4,2026-11-15,,,,true,false,0.0297,Task 35: service gas boiler and replace thermocouple,Sent,
+production,t0036,v1.4,2026-11-15,,,,true,false,0.0309,Task 36: fit new consumer unit with surge protection,Sent,
+production,t0037,v1.4,2026-11-15,,,,true,false,0.0145,Task 37: unblock main drain and camera survey,Sent,
+production,t0038,v1.4,2026-11-15,,,,true,false,0.0210,Task 38: replace bathroom extractor fan,Sent,
+production,t0039,v1.4,2026-11-15,,,,true,false,0.0215,Task 39: repair roof flashing around chimney,Sent,
+production,t0040,v1.4,2026-11-15,,,,true,false,0.0219,Task 40: replace leaking water heater 50 gallon,Sent,
+production,t0041,v1.4,2026-11-15,,,,true,false,0.0237,Task 41: install outdoor tap and isolation valve,Sent,
+production,t0042,v1.4,2026-11-15,,,,true,false,0.0154,Task 42: rewire kitchen ring main and add two sockets,Sent,
+production,t0043,v1.4,2026-11-15,,,,true,true,0.0332,Task 43: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0044,v1.4,2026-11-15,,,,true,false,0.0370,Task 44: fit new consumer unit with surge protection,Sent,
+production,t0045,v1.4,2026-11-15,,,,true,false,0.0349,Task 45: unblock main drain and camera survey,Sent,
+production,t0046,v1.4,2026-11-15,,,,true,true,0.0197,Task 46: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0047,v1.4,2026-11-15,,,,true,true,0.0244,Task 47: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0048,v1.4,2026-11-15,,,,true,true,0.0181,Task 48: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0049,v1.4,2026-11-15,,,,true,false,0.0330,Task 49: install outdoor tap and isolation valve,Sent,
+production,t0050,v1.4,2026-11-15,,,,true,false,0.0225,Task 50: rewire kitchen ring main and add two sockets,Sent,
+production,t0051,v1.4,2026-11-15,,,,true,true,0.0350,Task 51: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0052,v1.4,2026-11-15,,,,true,false,0.0193,Task 52: fit new consumer unit with surge protection,Sent,
+production,t0053,v1.4,2026-11-15,,,,true,false,0.0240,Task 53: unblock main drain and camera survey,Sent,
+production,t0054,v1.4,2026-11-15,,,,true,true,0.0293,Task 54: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0055,v1.4,2026-11-15,,,,true,false,0.0249,Task 55: repair roof flashing around chimney,Sent,
+production,t0056,v1.4,2026-11-15,,,,false,true,0.0278,Task 56: replace leaking water heater 50 gallon,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0057,v1.4,2026-11-15,,,,true,true,0.0233,Task 57: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0058,v1.4,2026-11-15,,,,true,false,0.0147,Task 58: rewire kitchen ring main and add two sockets,Sent,
+production,t0059,v1.4,2026-11-15,,,,true,false,0.0156,Task 59: service gas boiler and replace thermocouple,Sent,
+production,t0060,v1.4,2026-11-15,,,,false,true,0.0137,Task 60: fit new consumer unit with surge protection,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0061,v1.4,2026-11-15,,,,true,false,0.0348,Task 61: unblock main drain and camera survey,Sent,
+production,t0062,v1.4,2026-11-15,,,,true,false,0.0306,Task 62: replace bathroom extractor fan,Sent,
+production,t0063,v1.4,2026-11-15,,,,true,true,0.0321,Task 63: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0064,v1.4,2026-11-15,,,,true,false,0.0167,Task 64: replace leaking water heater 50 gallon,Sent,
+production,t0065,v1.4,2026-11-15,,,,true,false,0.0240,Task 65: install outdoor tap and isolation valve,Sent,
+production,t0066,v1.4,2026-11-15,,,,true,false,0.0232,Task 66: rewire kitchen ring main and add two sockets,Sent,
+production,t0067,v1.4,2026-11-15,,,,true,false,0.0143,Task 67: service gas boiler and replace thermocouple,Sent,
+production,t0068,v1.4,2026-11-15,,,,true,false,0.0200,Task 68: fit new consumer unit with surge protection,Sent,
+production,t0069,v1.4,2026-11-15,,,,true,false,0.0185,Task 69: unblock main drain and camera survey,Sent,
+production,t0070,v1.4,2026-11-15,,,,true,true,0.0278,Task 70: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0071,v1.4,2026-11-15,,,,true,false,0.0248,Task 71: repair roof flashing around chimney,Sent,
+production,t0072,v1.4,2026-11-15,,,,true,false,0.0276,Task 72: replace leaking water heater 50 gallon,Sent,
+production,t0073,v1.4,2026-11-15,,,,true,false,0.0262,Task 73: install outdoor tap and isolation valve,Sent,
+production,t0074,v1.4,2026-11-15,,,,true,false,0.0296,Task 74: rewire kitchen ring main and add two sockets,Sent,
+production,t0075,v1.4,2026-11-15,,,,false,true,0.0166,Task 75: service gas boiler and replace thermocouple,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0076,v1.4,2026-11-15,,,,true,false,0.0225,Task 76: fit new consumer unit with surge protection,Sent,
+production,t0077,v1.4,2026-11-15,,,,true,true,0.0278,Task 77: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0078,v1.4,2026-11-15,,,,true,false,0.0162,Task 78: replace bathroom extractor fan,Sent,
+production,t0079,v1.4,2026-11-15,,,,true,false,0.0266,Task 79: repair roof flashing around chimney,Sent,
+production,t0080,v1.4,2026-11-15,,,,true,false,0.0240,Task 80: replace leaking water heater 50 gallon,Sent,
+production,t0081,v1.4,2026-11-15,,,,false,true,0.0225,Task 81: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0082,v1.4,2026-11-15,,,,true,false,0.0181,Task 82: rewire kitchen ring main and add two sockets,Sent,
+production,t0083,v1.4,2026-11-15,,,,true,false,0.0207,Task 83: service gas boiler and replace thermocouple,Sent,
+production,t0084,v1.4,2026-11-15,,,,true,false,0.0235,Task 84: fit new consumer unit with surge protection,Sent,
+production,t0085,v1.4,2026-11-15,,,,true,false,0.0201,Task 85: unblock main drain and camera survey,Sent,
+production,t0086,v1.4,2026-11-15,,,,true,true,0.0219,Task 86: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0087,v1.4,2026-11-15,,,,true,false,0.0244,Task 87: repair roof flashing around chimney,Sent,
+production,t0088,v1.4,2026-11-15,,,,false,true,0.0299,Task 88: replace leaking water heater 50 gallon,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0089,v1.4,2026-11-15,,,,true,false,0.0241,Task 89: install outdoor tap and isolation valve,Sent,
+production,t0090,v1.4,2026-11-15,,,,true,false,0.0371,Task 90: rewire kitchen ring main and add two sockets,Sent,
+production,t0091,v1.4,2026-11-15,,,,true,false,0.0308,Task 91: service gas boiler and replace thermocouple,Sent,
+production,t0092,v1.4,2026-11-15,,,,true,false,0.0207,Task 92: fit new consumer unit with surge protection,Sent,
+production,t0093,v1.4,2026-11-15,,,,true,false,0.0207,Task 93: unblock main drain and camera survey,Sent,
+production,t0094,v1.4,2026-11-15,,,,true,false,0.0233,Task 94: replace bathroom extractor fan,Sent,
+production,t0095,v1.4,2026-11-15,,,,true,false,0.0235,Task 95: repair roof flashing around chimney,Sent,
+production,t0096,v1.4,2026-11-15,,,,true,false,0.0344,Task 96: replace leaking water heater 50 gallon,Sent,
+production,t0097,v1.4,2026-11-15,,,,true,true,0.0237,Task 97: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0098,v1.4,2026-11-15,,,,true,true,0.0226,Task 98: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0099,v1.4,2026-11-15,,,,true,true,0.0208,Task 99: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0100,v1.4,2026-11-15,,,,true,true,0.0288,Task 100: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0101,v1.4,2026-11-15,,,,true,true,0.0229,Task 101: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0102,v1.4,2026-11-15,,,,true,false,0.0319,Task 102: replace bathroom extractor fan,Sent,
+production,t0103,v1.4,2026-11-15,,,,true,false,0.0237,Task 103: repair roof flashing around chimney,Sent,
+production,t0104,v1.4,2026-11-15,,,,true,false,0.0267,Task 104: replace leaking water heater 50 gallon,Sent,
+production,t0105,v1.4,2026-11-15,,,,true,false,0.0295,Task 105: install outdoor tap and isolation valve,Sent,
+production,t0106,v1.4,2026-11-15,,,,true,false,0.0335,Task 106: rewire kitchen ring main and add two sockets,Sent,
+production,t0107,v1.4,2026-11-15,,,,true,false,0.0257,Task 107: service gas boiler and replace thermocouple,Sent,
+production,t0108,v1.4,2026-11-15,,,,true,false,0.0161,Task 108: fit new consumer unit with surge protection,Sent,
+production,t0109,v1.4,2026-11-15,,,,true,false,0.0247,Task 109: unblock main drain and camera survey,Sent,
+production,t0110,v1.4,2026-11-15,,,,true,false,0.0325,Task 110: replace bathroom extractor fan,Sent,
+production,t0111,v1.4,2026-11-15,,,,true,true,0.0270,Task 111: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0112,v1.4,2026-11-15,,,,true,false,0.0269,Task 112: replace leaking water heater 50 gallon,Sent,
+production,t0113,v1.4,2026-11-15,,,,true,true,0.0364,Task 113: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0114,v1.4,2026-11-15,,,,true,false,0.0246,Task 114: rewire kitchen ring main and add two sockets,Sent,
+production,t0115,v1.4,2026-11-15,,,,true,false,0.0269,Task 115: service gas boiler and replace thermocouple,Sent,
+production,t0116,v1.4,2026-11-15,,,,true,false,0.0385,Task 116: fit new consumer unit with surge protection,Sent,
+production,t0117,v1.4,2026-11-15,,,,true,false,0.0237,Task 117: unblock main drain and camera survey,Sent,
+production,t0118,v1.4,2026-11-15,,,,true,false,0.0160,Task 118: replace bathroom extractor fan,Sent,
+production,t0119,v1.4,2026-11-15,,,,true,false,0.0260,Task 119: repair roof flashing around chimney,Sent,
+production,t0120,v1.4,2026-11-15,,,,true,false,0.0301,Task 120: replace leaking water heater 50 gallon,Sent,
+production,t0121,v1.4,2026-11-15,,,,true,true,0.0181,Task 121: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0122,v1.4,2026-11-15,,,,true,false,0.0250,Task 122: rewire kitchen ring main and add two sockets,Sent,
+production,t0123,v1.4,2026-11-15,,,,true,true,0.0360,Task 123: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0124,v1.4,2026-11-15,,,,true,false,0.0336,Task 124: fit new consumer unit with surge protection,Sent,
+production,t0125,v1.4,2026-11-15,,,,true,true,0.0238,Task 125: unblock main drain and camera survey,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0126,v1.4,2026-11-15,,,,true,false,0.0170,Task 126: replace bathroom extractor fan,Sent,
+production,t0127,v1.4,2026-11-15,,,,true,false,0.0171,Task 127: repair roof flashing around chimney,Sent,
+production,t0128,v1.4,2026-11-15,,,,true,false,0.0155,Task 128: replace leaking water heater 50 gallon,Sent,
+production,t0129,v1.4,2026-11-15,,,,true,false,0.0324,Task 129: install outdoor tap and isolation valve,Sent,
+production,t0130,v1.4,2026-11-15,,,,false,true,0.0184,Task 130: rewire kitchen ring main and add two sockets,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0131,v1.4,2026-11-15,,,,true,false,0.0269,Task 131: service gas boiler and replace thermocouple,Sent,
+production,t0132,v1.4,2026-11-15,,,,true,false,0.0159,Task 132: fit new consumer unit with surge protection,Sent,
+production,t0133,v1.4,2026-11-15,,,,false,true,0.0302,Task 133: unblock main drain and camera survey,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0134,v1.4,2026-11-15,,,,false,true,0.0193,Task 134: replace bathroom extractor fan,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0135,v1.4,2026-11-15,,,,true,false,0.0220,Task 135: repair roof flashing around chimney,Sent,
+production,t0136,v1.4,2026-11-15,,,,true,true,0.0321,Task 136: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0137,v1.4,2026-11-15,,,,false,true,0.0210,Task 137: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0138,v1.4,2026-11-15,,,,true,false,0.0285,Task 138: rewire kitchen ring main and add two sockets,Sent,
+production,t0139,v1.4,2026-11-15,,,,true,false,0.0228,Task 139: service gas boiler and replace thermocouple,Sent,
+production,t0140,v1.4,2026-11-15,,,,true,false,0.0227,Task 140: fit new consumer unit with surge protection,Sent,
+production,t0141,v1.4,2026-11-15,,,,false,true,0.0222,Task 141: unblock main drain and camera survey,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0142,v1.4,2026-11-15,,,,true,true,0.0184,Task 142: replace bathroom extractor fan,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0143,v1.4,2026-11-15,,,,true,false,0.0373,Task 143: repair roof flashing around chimney,Sent,
+production,t0144,v1.4,2026-11-15,,,,true,true,0.0235,Task 144: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0145,v1.4,2026-11-15,,,,true,false,0.0291,Task 145: install outdoor tap and isolation valve,Sent,
+production,t0146,v1.4,2026-11-15,,,,true,true,0.0205,Task 146: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0147,v1.4,2026-11-15,,,,true,false,0.0269,Task 147: service gas boiler and replace thermocouple,Sent,
+production,t0148,v1.4,2026-11-15,,,,true,false,0.0194,Task 148: fit new consumer unit with surge protection,Sent,
+production,t0149,v1.4,2026-11-15,,,,true,false,0.0349,Task 149: unblock main drain and camera survey,Sent,
+production,t0150,v1.4,2026-11-15,,,,true,false,0.0191,Task 150: replace bathroom extractor fan,Sent,
+production,t0151,v1.4,2026-11-15,,,,true,false,0.0103,Task 151: repair roof flashing around chimney,Sent,
+production,t0152,v1.4,2026-11-15,,,,true,false,0.0187,Task 152: replace leaking water heater 50 gallon,Sent,
+production,t0153,v1.4,2026-11-15,,,,true,true,0.0421,Task 153: install outdoor tap and isolation valve,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0154,v1.4,2026-11-15,,,,false,true,0.0243,Task 154: rewire kitchen ring main and add two sockets,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0155,v1.4,2026-11-15,,,,true,true,0.0128,Task 155: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0156,v1.4,2026-11-15,,,,true,false,0.0227,Task 156: fit new consumer unit with surge protection,Sent,
+production,t0157,v1.4,2026-11-15,,,,true,false,0.0200,Task 157: unblock main drain and camera survey,Sent,
+production,t0158,v1.4,2026-11-15,,,,true,false,0.0220,Task 158: replace bathroom extractor fan,Sent,
+production,t0159,v1.4,2026-11-15,,,,true,false,0.0195,Task 159: repair roof flashing around chimney,Sent,
+production,t0160,v1.4,2026-11-15,,,,true,false,0.0241,Task 160: replace leaking water heater 50 gallon,Sent,
+production,t0161,v1.4,2026-11-15,,,,true,false,0.0324,Task 161: install outdoor tap and isolation valve,Sent,
+production,t0162,v1.4,2026-11-15,,,,true,false,0.0200,Task 162: rewire kitchen ring main and add two sockets,Sent,
+production,t0163,v1.4,2026-11-15,,,,true,true,0.0261,Task 163: service gas boiler and replace thermocouple,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0164,v1.4,2026-11-15,,,,true,true,0.0159,Task 164: fit new consumer unit with surge protection,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0165,v1.4,2026-11-15,,,,true,false,0.0147,Task 165: unblock main drain and camera survey,Sent,
+production,t0166,v1.4,2026-11-15,,,,true,false,0.0290,Task 166: replace bathroom extractor fan,Sent,
+production,t0167,v1.4,2026-11-15,,,,true,true,0.0212,Task 167: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0168,v1.4,2026-11-15,,,,true,false,0.0107,Task 168: replace leaking water heater 50 gallon,Sent,
+production,t0169,v1.4,2026-11-15,,,,true,false,0.0170,Task 169: install outdoor tap and isolation valve,Sent,
+production,t0170,v1.4,2026-11-15,,,,true,false,0.0176,Task 170: rewire kitchen ring main and add two sockets,Sent,
+production,t0171,v1.4,2026-11-15,,,,true,false,0.0224,Task 171: service gas boiler and replace thermocouple,Sent,
+production,t0172,v1.4,2026-11-15,,,,true,false,0.0209,Task 172: fit new consumer unit with surge protection,Sent,
+production,t0173,v1.4,2026-11-15,,,,true,false,0.0258,Task 173: unblock main drain and camera survey,Sent,
+production,t0174,v1.4,2026-11-15,,,,true,false,0.0219,Task 174: replace bathroom extractor fan,Sent,
+production,t0175,v1.4,2026-11-15,,,,false,true,0.0211,Task 175: repair roof flashing around chimney,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0176,v1.4,2026-11-15,,,,true,true,0.0295,Task 176: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0177,v1.4,2026-11-15,,,,false,true,0.0182,Task 177: install outdoor tap and isolation valve,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0178,v1.4,2026-11-15,,,,true,false,0.0187,Task 178: rewire kitchen ring main and add two sockets,Sent,
+production,t0179,v1.4,2026-11-15,,,,false,true,0.0205,Task 179: service gas boiler and replace thermocouple,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0180,v1.4,2026-11-15,,,,true,false,0.0198,Task 180: fit new consumer unit with surge protection,Sent,
+production,t0181,v1.4,2026-11-15,,,,true,false,0.0289,Task 181: unblock main drain and camera survey,Sent,
+production,t0182,v1.4,2026-11-15,,,,true,false,0.0323,Task 182: replace bathroom extractor fan,Sent,
+production,t0183,v1.4,2026-11-15,,,,true,true,0.0189,Task 183: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0184,v1.4,2026-11-15,,,,true,false,0.0198,Task 184: replace leaking water heater 50 gallon,Sent,
+production,t0185,v1.4,2026-11-15,,,,true,false,0.0268,Task 185: install outdoor tap and isolation valve,Sent,
+production,t0186,v1.4,2026-11-15,,,,true,false,0.0168,Task 186: rewire kitchen ring main and add two sockets,Sent,
+production,t0187,v1.4,2026-11-15,,,,true,false,0.0294,Task 187: service gas boiler and replace thermocouple,Sent,
+production,t0188,v1.4,2026-11-15,,,,true,false,0.0274,Task 188: fit new consumer unit with surge protection,Sent,
+production,t0189,v1.4,2026-11-15,,,,true,false,0.0332,Task 189: unblock main drain and camera survey,Sent,
+production,t0190,v1.4,2026-11-15,,,,true,false,0.0296,Task 190: replace bathroom extractor fan,Sent,
+production,t0191,v1.4,2026-11-15,,,,true,true,0.0261,Task 191: repair roof flashing around chimney,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0192,v1.4,2026-11-15,,,,true,true,0.0142,Task 192: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0193,v1.4,2026-11-15,,,,true,false,0.0282,Task 193: install outdoor tap and isolation valve,Sent,
+production,t0194,v1.4,2026-11-15,,,,true,true,0.0298,Task 194: rewire kitchen ring main and add two sockets,estimator edited labour hours,Estimator changed labour hours before sending.
+production,t0195,v1.4,2026-11-15,,,,true,false,0.0379,Task 195: service gas boiler and replace thermocouple,Sent,
+production,t0196,v1.4,2026-11-15,,,,true,false,0.0197,Task 196: fit new consumer unit with surge protection,Sent,
+production,t0197,v1.4,2026-11-15,,,,true,false,0.0237,Task 197: unblock main drain and camera survey,Sent,
+production,t0198,v1.4,2026-11-15,,,,true,false,0.0269,Task 198: replace bathroom extractor fan,Sent,
+production,t0199,v1.4,2026-11-15,,,,false,true,0.0281,Task 199: repair roof flashing around chimney,quote scope missed the return visit,Scope left out the second visit to finish the job.
+production,t0200,v1.4,2026-11-15,,,,true,true,0.0256,Task 200: replace leaking water heater 50 gallon,estimator edited labour hours,Estimator changed labour hours before sending.

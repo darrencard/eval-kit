@@ -377,5 +377,24 @@ class LiveData(Temp):
         self.assertEqual({t.kind for t in load_traces(self.tmp / "lf.csv")}, {"production"})
 
 
+class SampleTest(unittest.TestCase):
+    """The README's sample command reproduces the committed Acme sample byte for byte."""
+
+    def test_sample_reproduces_committed_files(self):
+        sys.path.insert(0, str(ROOT / "examples" / "acme"))
+        import sample
+
+        acme = ROOT / "examples" / "acme"
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+            sample.main(["--into", tmp])
+            for name in ("eval-kit.html", "eval-kit.md", "landing/quote-drafting.json"):
+                self.assertEqual((Path(tmp) / name).read_bytes(), (acme / name).read_bytes(), name)
+
+    def test_sample_record_holds_only_the_evals_key(self):
+        record = json.loads((ROOT / "examples" / "acme" / "landing" / "quote-drafting.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(record), {"schema", "bet", "brief", "evals"})
+        self.assertEqual(record["brief"]["path"], "examples/acme/briefs/quote-drafting.md")
+
+
 if __name__ == "__main__":
     unittest.main()
