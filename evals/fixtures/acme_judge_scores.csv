@@ -1,0 +1,9 @@
+id,relevance,specificity,grounding,actionability
+grounded-quote,5,5,5,5
+grounded-chase,5,4,5,4
+invented-part,5,5,1,5
+misquoted-price,5,5,1,5
+vague-quote,5,1,4,4
+wrong-job,1,5,4,5
+no-next-step,5,5,5,1
+chase-wrong-amount,5,4,1,4

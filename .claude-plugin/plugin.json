@@ -1,0 +1,6 @@
+{
+  "name": "eval-kit",
+  "version": "0.1.0",
+  "description": "Set up and report evals for one AI feature. Held-out pass rate, autonomy and cost per task computed in code, a sealed holdout, judge calibration cases and failure clusters, with an evals.csv the Product & Technology Leader Report reads.",
+  "author": { "name": "Dacard" }
+}

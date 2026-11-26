@@ -1,0 +1,19 @@
+[project]
+name = "eval-kit"
+version = "0.1.0"
+description = "A skill that sets up and reports evals for one AI feature from a traces CSV."
+requires-python = ">=3.11"
+# Standard library only, on purpose: the scripts run inside sandboxes that cannot install packages.
+dependencies = []
+
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+# E, F: errors and unused names. I: import order. B: likely bugs. UP: old syntax. SIM: needless complexity. S: security.
+select = ["E", "F", "I", "B", "UP", "SIM", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# The fixture generator and tests draw synthetic rows with random; nothing they make is a secret.
+"evals/**" = ["S311"]
