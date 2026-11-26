@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from evalcore import Trace, load_traces, versions  # noqa: E402
+from evalcore import Trace, load_traces, parse_map, versions  # noqa: E402
 
 # A trace joins a cluster only if it shares at least this many salient terms, so one shared domain word never
 # merges two distinct modes.
@@ -87,6 +87,14 @@ def background(passed: list[Trace]) -> set[str]:
     return {x for x, n in df.items() if n / len(passed) > BACKGROUND_SHARE} if passed else set()
 
 
+EXAMPLES = 2
+CLIP = 140
+
+
+def _clip(text: str) -> str:
+    return text if len(text) <= CLIP else text[: CLIP - 3].rstrip() + "..."
+
+
 def signal_text(t: Trace) -> str:
     return f"{t.output} {t.note}".strip() or t.input
 
@@ -103,11 +111,12 @@ def cluster(failed: list[Trace], passed: list[Trace] | None = None) -> list[dict
             if n >= MIN_SHARED and n > best_n:
                 best, best_n = g, n
         if best is not None:
+            best["traces"].append(t)
             best["members"].append(f"{t.kind}:{t.id}")
             best["kw"].append(kw)
             best["sig"].update(kw)
         else:
-            groups.append({"members": [f"{t.kind}:{t.id}"], "kw": [kw], "sig": set(kw)})
+            groups.append({"members": [f"{t.kind}:{t.id}"], "traces": [t], "kw": [kw], "sig": set(kw)})
 
     total = len(failed) or 1
     out = []
@@ -127,6 +136,11 @@ def cluster(failed: list[Trace], passed: list[Trace] | None = None) -> list[dict
                 "size": len(g["members"]),
                 "share": round(100 * len(g["members"]) / total),
                 "members": sorted(g["members"]),
+                # Two traces to read, so a person names the mode from what went wrong, not from the terms alone.
+                "examples": [
+                    {"trace": f"{t.kind}:{t.id}", "text": _clip(" / ".join(x for x in (t.output, t.note) if x) or t.input)}
+                    for t in sorted(g["traces"], key=lambda t: (t.kind, t.id))[:EXAMPLES]
+                ],
             }
         )
     out.sort(key=lambda c: (-c["size"], c["label"]))
@@ -137,8 +151,9 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("traces")
     p.add_argument("--version", help="defaults to the latest version")
+    p.add_argument("--map", action="append", metavar="SCHEMA=YOURS")
     args = p.parse_args(argv)
-    traces = load_traces(Path(args.traces))
+    traces = load_traces(Path(args.traces), parse_map(args.map))
     version = args.version or versions(traces)[-1]
     print(json.dumps(cluster(failures(traces, version), passes(traces, version)), indent=2))
 

@@ -13,7 +13,7 @@ failures it is allowed to read. Then it writes three files to --out:
 On any blocking error it writes nothing and exits non-zero with what to fix.
 
 Usage:
-  python3 scripts/report.py TRACES.csv --out run --feature "Quote drafting" \\
+  python3 scripts/report.py TRACES.csv --out run --feature "Quote drafting" [--map SCHEMA=YOURS] [--fail-on stalled] \\
       [--seal holdout.seal.json] [--judge-scores judge_scores.csv] [--target 85] [--illustrative]
 """
 
@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import calibration  # noqa: E402
 import clusters  # noqa: E402
 import holdout  # noqa: E402
-from evalcore import EvalError, Ledger, Trace, load_traces, pct, versions  # noqa: E402
+from evalcore import EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
 
 # The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
 EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
@@ -71,15 +71,23 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
     row["pass_rate"] = pct(row["passed"], row["cases"])
     row["dev_pass_rate"] = pct(row["dev_passed"], row["dev_cases"]) if dev else None
     row["autonomy_rate"] = pct(row["tasks_unassisted"], row["tasks"]) if prod else None
+    row["pass_ci"] = wilson(row["passed"], row["cases"])
+    row["autonomy_ci"] = wilson(row["tasks_unassisted"], row["tasks"]) if prod else None
     return row
 
 
-def decide_status(latest: dict, target: float | None, sealed: bool, calib: dict | None, verdict: holdout.Verdict | None) -> tuple[str, list[str]]:
+def decide_status(
+    latest: dict, target: float | None, sealed: bool, calib: dict | None, verdict: holdout.Verdict | None, before: dict | None = None
+) -> tuple[str, list[str]]:
     """landed, watch or stalled for the latest version, with every reason. Nothing else prints as a status."""
     reasons: list[str] = []
     rate = latest["pass_rate"]
     if verdict and verdict.new_failures:
-        return "stalled", [f"it fails {len(verdict.new_failures)} held-out case(s) {verdict.champion} passed"]
+        why = [f"it fails {len(verdict.new_failures)} held-out case(s) {verdict.champion} passed"]
+        # Goodhart guard: autonomy bought with quality is not progress. Name it when the pair moves apart.
+        if before and latest["autonomy_rate"] is not None and before["autonomy_rate"] is not None and latest["autonomy_rate"] > before["autonomy_rate"]:
+            why.append(f"autonomy rose ({before['autonomy_rate']:g}% to {latest['autonomy_rate']:g}%) while held-out quality fell")
+        return "stalled", why
     if target is None:
         return "watch", ["no target is set for the held-out pass rate"]
     if rate < target - STALL_MARGIN:
@@ -100,7 +108,7 @@ def decide_status(latest: dict, target: float | None, sealed: bool, calib: dict 
 
 def build(args: argparse.Namespace) -> dict[str, Any]:
     src = Path(args.traces)
-    traces = load_traces(src)
+    traces = load_traces(src, parse_map(getattr(args, "map", None)))
     errors, warnings = holdout.check_splits(traces)
     sealed = False
     if args.seal:
@@ -129,13 +137,18 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         calib = calibration.check_judge(cases, Path(args.judge_scores))
 
     verdict = holdout.judge_promotion(traces, before["version"], latest["version"]) if before else None
-    status, reasons = decide_status(latest, args.target, sealed, calib, verdict)
+    status, reasons = decide_status(latest, args.target, sealed, calib, verdict, before)
 
     ledger = Ledger(src, args.illustrative)
     for r in rows:
         v = r["version"]
         r["ledger"] = {
-            "pass_rate": ledger.add(f"Held-out pass rate ({v})", r["pass_rate"], "%", f"{r['passed']} of {r['cases']} holdout eval rows passed"),
+            "pass_rate": ledger.add(
+                f"Held-out pass rate ({v})",
+                r["pass_rate"],
+                "%",
+                f"{r['passed']} of {r['cases']} holdout eval rows passed; 95% interval {r['pass_ci'][0]:g} to {r['pass_ci'][1]:g}",
+            ),
         }
         if r["dev_pass_rate"] is not None:
             r["ledger"]["dev_pass_rate"] = ledger.add(
@@ -146,7 +159,8 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 f"Tasks finished without a person ({v})",
                 r["autonomy_rate"],
                 "%",
-                f"{r['tasks_unassisted']} of {r['tasks']} production rows succeeded with human_stepped_in false",
+                f"{r['tasks_unassisted']} of {r['tasks']} production rows succeeded with human_stepped_in false; "
+                f"95% interval {r['autonomy_ci'][0]:g} to {r['autonomy_ci'][1]:g}",
             )
         if r["cost_per_task"] is not None:
             r["ledger"]["cost_per_task"] = ledger.add(
@@ -202,14 +216,20 @@ def markdown(report: dict) -> str:
     why = "; ".join(report["reasons"])
     out.append(f"**Status: {report['status']}.** {why[:1].upper()}{why[1:]}.")
     out.append("")
-    line = f"Version {latest['version']} passes {latest['passed']} of {latest['cases']} held-out cases ({latest['pass_rate']:g}%) [{led['pass_rate']}]"
+    lo, hi = latest["pass_ci"]
+    line = (
+        f"Version {latest['version']} passes {latest['passed']} of {latest['cases']} held-out cases ({latest['pass_rate']:g}%, "
+        f"95% interval {lo:g} to {hi:g}) [{led['pass_rate']}]"
+    )
     if latest["dev_pass_rate"] is not None:
         line += f", against {latest['dev_pass_rate']:g}% on development [{led['dev_pass_rate']}]"
     out.append(line + ".")
+    if report["target"] is not None and lo < report["target"] <= latest["pass_rate"]:
+        out.append(f"The interval's low end, {lo:g}%, is under the {report['target']:g}% target. More held-out cases would settle it.")
     if latest["autonomy_rate"] is not None:
         out.append(
             f"It finished {latest['tasks_unassisted']} of {latest['tasks']} production tasks with no person stepping in "
-            f"({latest['autonomy_rate']:g}%) [{led['autonomy_rate']}]."
+            f"({latest['autonomy_rate']:g}%, 95% interval {latest['autonomy_ci'][0]:g} to {latest['autonomy_ci'][1]:g}) [{led['autonomy_rate']}]."
         )
     if latest["cost_per_task"] is not None:
         out.append(f"Cost per successful task: {fmt_money(latest['cost_per_task'])} [{led['cost_per_task']}].")
@@ -218,6 +238,10 @@ def markdown(report: dict) -> str:
         p = report["promotion"]
         verb = "may replace" if p["promote"] else "may not replace"
         out += ["## Promotion", "", f"{p['challenger']} {verb} {p['champion']}: {p['reason']}.", ""]
+        if p["gained"]:
+            out += [f"It newly passes {len(p['gained'])} held-out case(s): {', '.join(p['gained'])}.", ""]
+        if p["within_noise"]:
+            out += ["Each rate sits inside the other's 95% interval, so read the gain as direction, not size. More held-out cases would measure it.", ""]
         if p["new_failures"]:
             out += [f"New held-out failures: {', '.join(p['new_failures'])}.", ""]
     out += ["## By version", "", "| Version | Run | Held-out pass | Development pass | Without a person | Cost per successful task |"]
@@ -237,6 +261,10 @@ def markdown(report: dict) -> str:
         out += ["Clustered from development failures and production tasks that failed or needed a person. No categories were set in advance.", ""]
         out += ["| Cluster | Shared terms | Traces | Share |", "|---|---|---|---|"]
         out += [f"| {c['id']} | {c['label']} | {c['size']} | {c['share']}% |" for c in report["clusters"]]
+        out += ["", "Read these before naming a cluster:", ""]
+        for c in report["clusters"][:5]:
+            for e in c["examples"]:
+                out.append(f"- {c['id']} `{e['trace']}`: {e['text']}")
     else:
         out.append("No failures to read.")
     out += ["", f"{report['held_out_failures_unread']} held-out failure(s) are counted above and not read, so the holdout stays sealed.", ""]
@@ -269,9 +297,24 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--calibration-cases", help="a JSON file of your own calibration cases; defaults to the built-in set")
     p.add_argument("--target", type=float, help="target held-out pass rate, in percent")
     p.add_argument("--illustrative", action="store_true", help="mark every figure Illustrative (sample data)")
+    p.add_argument("--map", action="append", metavar="SCHEMA=YOURS", help="read your export's column as a schema column; repeat per column")
+    p.add_argument("--fail-on", choices=("watch", "stalled"), help="exit 2 when the status is this bad or worse, for a CI gate")
     args = p.parse_args(argv)
-    report = build(args)
-    out = Path(args.out)
+    report = write(build(args), Path(args.out))
+    gate(report, args.fail_on)
+
+
+FAIL_ORDER = {"landed": 0, "watch": 1, "stalled": 2}
+
+
+def gate(report: dict, fail_on: str | None) -> None:
+    """For CI: exit 2 when the status is at or past --fail-on. The files are written first, so the run can be read."""
+    if fail_on and FAIL_ORDER[report["status"]] >= FAIL_ORDER[fail_on]:
+        print(f"report: failing the gate, {report['latest']} is {report['status']} (--fail-on {fail_on})")
+        raise SystemExit(2)
+
+
+def write(report: dict, out: Path) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     write_evals_csv(report, out / "evals.csv")
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -279,6 +322,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"report: {report['latest']} is {report['status']}; wrote evals.csv, report.json and report.md to {out}")
     for w in report["warnings"]:
         print(f"warning: {w}")
+    return report
 
 
 if __name__ == "__main__":

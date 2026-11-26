@@ -1,10 +1,10 @@
-# Traces CSV
+# Traces CSV or JSONL
 
-One file per AI feature. One row per eval case result or production task, for every version you want compared. Column names are lower case. Extra columns are ignored.
+One file per AI feature, as CSV or as JSONL (one JSON object per line; nested keys read as dotted columns such as `metadata.version`). Map other column names with `--map SCHEMA=YOURS`. One row per eval case result or production task, for every version you want compared. Column names are lower case. Extra columns are ignored.
 
 | Column | Rows | Required | Meaning |
 |---|---|---|---|
-| `kind` | all | Yes | `eval` (a case from the eval set) or `production` (a real task) |
+| `kind` | all | Yes | `eval` (a case from the eval set) or `production` (a real task). Also read: test, offline, evaluation as eval; prod, live, online as production |
 | `id` | all | Yes | Case id for eval rows (the same case keeps the same id across versions); task id for production rows |
 | `version` | all | Yes | The prompt, model or pipeline version that produced the row |
 | `run_at` | all | Yes | YYYY-MM-DD. A version's run date is its latest row |

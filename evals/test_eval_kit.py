@@ -11,6 +11,7 @@ Groups:
   Calibration   the case set and the judge check (ported from judge-calibration.ts).
   Clusters      failure modes found with no taxonomy, and the holdout never read (failure-clusters.ts).
   Report        every figure, the status rule and the Leader Report's evals columns.
+  OneCommand    run.py seals on first run, sets up calibration, maps columns and gates CI.
   Hygiene       no em dashes, no banned words, versions in step.
 
 Standard library only. Runs on Python 3.11 or later.
@@ -46,7 +47,8 @@ import clusters  # noqa: E402
 import holdout  # noqa: E402
 import make_fixture  # noqa: E402
 import report  # noqa: E402
-from evalcore import EvalError, fnv1a, load_traces  # noqa: E402
+import run  # noqa: E402
+from evalcore import EvalError, fnv1a, load_traces, parse_map, wilson  # noqa: E402
 
 
 def read_rows(path: Path = TRACES) -> list[dict[str, str]]:
@@ -141,6 +143,44 @@ class Loader(Temp):
             load_traces(write_rows(rows, self.tmp / "t.csv"))
         self.assertIn("human_stepped_in", str(ctx.exception))
 
+    def test_column_map_reads_an_export_as_it_is(self) -> None:
+        rows = [{("trace_id" if k == "id" else "type" if k == "kind" else k): v for k, v in r.items()} for r in read_rows()]
+        path = write_rows(rows, self.tmp / "export.csv")
+        mapped = load_traces(path, parse_map(["id=trace_id", "kind=type"]))
+        self.assertEqual([(t.kind, t.id) for t in mapped], [(t.kind, t.id) for t in load_traces(TRACES)])
+
+    def test_jsonl_with_nested_keys_and_export_kind_names(self) -> None:
+        path = self.tmp / "export.jsonl"
+        lines = []
+        for r in read_rows():
+            meta = {"version": r.pop("version"), "run_at": r.pop("run_at")}
+            kind = {"eval": "test", "production": "prod"}[r.pop("kind")]
+            flags = {k: (r[k] == "true") for k in ("succeeded", "human_stepped_in") if r[k]}
+            cells = {k: v for k, v in r.items() if v and k not in flags}
+            lines.append(json.dumps({**cells, **flags, "type": kind, "metadata": meta}))
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        got = load_traces(path, parse_map(["kind=type", "version=metadata.version", "run_at=metadata.run_at"]))
+        want = load_traces(TRACES)
+        self.assertEqual([(t.kind, t.id, t.version, t.is_pass, t.succeeded) for t in got], [(t.kind, t.id, t.version, t.is_pass, t.succeeded) for t in want])
+
+    def test_bad_jsonl_names_the_line(self) -> None:
+        path = self.tmp / "bad.jsonl"
+        path.write_text('{"kind": "eval"}\n', encoding="utf-8")
+        with self.assertRaises(EvalError) as ctx:
+            load_traces(path)
+        self.assertIn("missing column", str(ctx.exception))
+        path.write_text('{"kind": "eval", "id": "a", "version": "v1", "run_at": "2026-01-01"}\nnot json\n', encoding="utf-8")
+        with self.assertRaises(EvalError) as ctx:
+            load_traces(path)
+        self.assertIn("line 2", str(ctx.exception))
+
+    def test_a_bad_map_is_refused(self) -> None:
+        with self.assertRaises(EvalError):
+            parse_map(["trace=trace_id"])
+        with self.assertRaises(EvalError) as ctx:
+            load_traces(TRACES, parse_map(["id=not_there"]))
+        self.assertIn("does not have", str(ctx.exception))
+
     def test_passed_wins_over_score(self) -> None:
         t = load_traces(self.broken(passed="false", score="0.99"))[0]
         self.assertFalse(t.is_pass)
@@ -164,6 +204,26 @@ class Holdout(Temp):
         for share in (0.0, 1.0, 1.5):
             with self.subTest(share=share), self.assertRaises(EvalError):
                 holdout.assign_splits(["a", "b"], share)
+
+    def test_split_command_on_traces_splits_eval_rows_only(self) -> None:
+        rows = [dict(r, split="") for r in read_rows()]
+        src = write_rows(rows, self.tmp / "t.csv")
+        with redirect_stdout(io.StringIO()):
+            holdout.main(["split", str(src), "--out", str(self.tmp / "out.csv")])
+        out = read_rows(self.tmp / "out.csv")
+        self.assertTrue(all(r["split"] == "" for r in out if r["kind"] == "production"))
+        self.assertEqual(len({r["id"] for r in out if r["split"] == "holdout"}), 30)
+
+    def test_wilson_interval(self) -> None:
+        self.assertEqual(wilson(24, 30), (62.7, 90.5))
+        self.assertEqual(wilson(0, 10)[0], 0.0)
+        self.assertEqual(wilson(10, 10)[1], 100.0)
+        self.assertEqual(wilson(0, 0), (0.0, 0.0))
+
+    def test_a_small_gain_is_flagged_as_direction_not_size(self) -> None:
+        v = holdout.judge_promotion(load_traces(TRACES), "v1.3", "v1.4")
+        self.assertTrue(v.within_noise)
+        self.assertEqual(len(v.gained), 3)
 
     def test_split_command_adds_a_split_column(self) -> None:
         src = self.tmp / "cases.csv"
@@ -296,6 +356,18 @@ class Calibration(Temp):
         for c in calibration.CASES:
             self.assertNotIn(c.why, text)
 
+    def test_template_is_a_fit_shape_once_written(self) -> None:
+        cases = calibration.load_cases(self._write_json(calibration.template()))
+        errors = calibration.check_set(cases)
+        self.assertTrue(errors and all("template text" in e for e in errors))
+        filled = [{**c, "context": "Job: fix tap.", "answer": f"Answer {c['id']}"} for c in calibration.template()]
+        self.assertEqual(calibration.check_set(calibration.load_cases(self._write_json(filled))), [])
+
+    def _write_json(self, data: list) -> Path:
+        path = self.tmp / "cases.json"
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return path
+
     def test_custom_cases_from_json(self) -> None:
         path = self.tmp / "cases.json"
         data = [{"id": c.id, "answer": c.answer, "human": c.human, "expect": c.expect, "fails_on": c.fails_on} for c in calibration.CASES]
@@ -344,6 +416,12 @@ class Clusters(Temp):
         b = dict(base, id="x2", split="development", score="0.1", output="invoice layout broken", note="")
         traces = load_traces(write_rows([a, b], self.tmp / "t.csv"))
         self.assertEqual(len(clusters.cluster(clusters.failures(traces, traces[0].version))), 2)
+
+    def test_every_cluster_carries_traces_to_read(self) -> None:
+        traces = load_traces(TRACES)
+        for c in clusters.cluster(clusters.failures(traces, "v1.3"), clusters.passes(traces, "v1.3")):
+            self.assertTrue(1 <= len(c["examples"]) <= 2)
+            self.assertTrue(all(e["trace"] in c["members"] for e in c["examples"]))
 
     def test_keywords_drop_stopwords_and_short_tokens(self) -> None:
         self.assertEqual(clusters.keywords("The tax was applied to the Labour line, twice. Tax!"), ["applied", "labour", "line", "twice"])
@@ -465,9 +543,71 @@ class Report(Temp):
         self.assertIsNone(r["versions"][-1]["cost_per_task"])
         self.assertTrue(any("no cost_usd" in w for w in r["warnings"]))
 
+    def test_autonomy_rising_while_quality_falls_is_never_landed(self) -> None:
+        rows = read_rows()
+        for row in rows:
+            if row["version"] == "v1.3" and row["kind"] == "eval":
+                row["score"] = "0.90"
+        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), seal=None)
+        self.assertEqual(r["status"], "stalled")
+        self.assertTrue(any("autonomy rose" in x for x in r["reasons"]))
+
+    def test_intervals_are_in_the_ledger_and_the_text(self) -> None:
+        r = self.run_report()
+        md = report.markdown(r)
+        self.assertIn("95% interval 62.7 to 90.5", md)
+        self.assertIn("low end, 62.7%, is under the 80% target", md)
+        self.assertTrue(any("95% interval" in row["basis"] for row in r["ledger"]))
+
     def test_status_vocabulary(self) -> None:
         for kw in ({}, {"seal": None}, {"target": 99.0}):
             self.assertIn(self.run_report(**kw)["status"], {"landed", "watch", "stalled"})
+
+
+class OneCommand(Temp):
+    def copy_traces(self) -> Path:
+        dst = self.tmp / "traces.csv"
+        dst.write_bytes(TRACES.read_bytes())
+        return dst
+
+    def test_first_run_seals_and_sets_up_calibration(self) -> None:
+        src = self.copy_traces()
+        out = self.tmp / "run"
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            run.main([str(src), "--feature", "Quote drafting", "--target", "80", "--out", str(out)])
+        seal = json.loads((self.tmp / "traces.seal.json").read_text(encoding="utf-8"))
+        self.assertEqual(seal, json.loads(SEAL.read_text(encoding="utf-8")))
+        self.assertTrue((out / "calibration_cases.csv").exists())
+        self.assertIn("watch", buf.getvalue())
+
+    def test_second_run_with_a_calibrated_judge_lands(self) -> None:
+        src = self.copy_traces()
+        out = self.tmp / "run"
+        with redirect_stdout(io.StringIO()):
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out)])
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "watch"])
+        self.assertEqual(json.loads((out / "report.json").read_text(encoding="utf-8"))["status"], "landed")
+
+    def test_fail_on_gates_ci(self) -> None:
+        src = self.copy_traces()
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "run"), "--fail-on", "watch"])
+        self.assertEqual(ctx.exception.code, 2)
+        self.assertTrue((self.tmp / "run" / "report.md").exists())
+
+    def test_an_edit_after_sealing_blocks_the_next_run(self) -> None:
+        src = self.copy_traces()
+        with redirect_stdout(io.StringIO()):
+            run.main([str(src), "--feature", "x", "--out", str(self.tmp / "run")])
+        held = sorted(json.loads(SEAL.read_text())["ids"])[0]
+        rows = read_rows(src)
+        for r in rows:
+            if r["id"] == held:
+                r["input"] += " (easier)"
+        write_rows(rows, src)
+        with redirect_stdout(io.StringIO()), self.assertRaises(EvalError):
+            run.main([str(src), "--feature", "x", "--out", str(self.tmp / "run2")])
 
 
 BANNED = re.compile(r"\b(AI-powered|unlock|supercharge|seamless(ly)?|robust|get started|disrupting|revolutionizing)\b", re.I)
@@ -497,6 +637,12 @@ class Hygiene(unittest.TestCase):
         md = report.markdown(report.build(args()))
         self.assertNotIn(EM_DASH, md)
         self.assertIsNone(BANNED.search(md))
+
+    def test_ci_reference_uses_real_flags(self) -> None:
+        text = (ROOT / "skills" / "eval-kit" / "references" / "ci-gate.md").read_text(encoding="utf-8")
+        for flag in re.findall(r"(--[a-z-]+)", text):
+            with self.subTest(flag=flag):
+                self.assertIn(flag, (SCRIPTS / "run.py").read_text(encoding="utf-8"))
 
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))

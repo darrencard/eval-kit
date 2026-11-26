@@ -17,6 +17,7 @@ Usage:
   python3 scripts/calibration.py selftest [--cases FILE.json]
   python3 scripts/calibration.py export --out calibration_cases.csv [--cases FILE.json]   # blind: no verdicts
   python3 scripts/calibration.py check JUDGE_SCORES.csv [--cases FILE.json]
+  python3 scripts/calibration.py template --out my_cases.json   # a starter set for your own feature
 """
 
 from __future__ import annotations
@@ -149,6 +150,38 @@ CASES: tuple[Case, ...] = (
 )
 
 
+PLACEHOLDER = "WRITE:"
+TEMPLATE_BRIEFS = {
+    "pass": "an answer a domain expert would ship as is",
+    "grounding": "an answer that invents or misquotes one fact the context does not support, and is otherwise good",
+    "specificity": "an answer that invents nothing and commits to nothing: no figures, no names",
+    "relevance": "an answer that is precise and grounded, for a different request than the one given",
+    "actionability": "a correct answer that stops before the next step the user needs",
+}
+
+
+def template() -> list[dict]:
+    """A starter set for your own feature: 2 to pass, 4 to reject (one per axis) and a second grounding case,
+    since invented facts are the most common judge miss. Rubrics are filled in and consistent with the rule;
+    you write the context and answers."""
+    good = {a: 5 for a in GATED_AXES}
+    out = []
+    for i, kind in enumerate(("pass", "pass", "grounding", "grounding", "specificity", "relevance", "actionability"), start=1):
+        human = dict(good) if kind == "pass" else {**good, kind: 1}
+        out.append(
+            {
+                "id": f"case-{i}-{kind}",
+                "context": f"{PLACEHOLDER} what the feature is given (the record it must stay inside)",
+                "answer": f"{PLACEHOLDER} {TEMPLATE_BRIEFS[kind]}",
+                "human": human,
+                "expect": "pass" if kind == "pass" else "fail",
+                "fails_on": None if kind == "pass" else kind,
+                "why": f"{PLACEHOLDER} one line on why a person gave this verdict",
+            }
+        )
+    return out
+
+
 def load_cases(path: Path | None) -> tuple[Case, ...]:
     if path is None:
         return CASES
@@ -177,6 +210,8 @@ def check_set(cases: tuple[Case, ...]) -> list[str]:
             continue
         if passes(c.human) != (c.expect == "pass"):
             errors.append(f"case {c.id}: the rule says {'pass' if passes(c.human) else 'fail'} on the human rubric, the case expects {c.expect}.")
+        if c.answer.startswith(PLACEHOLDER) or c.context.startswith(PLACEHOLDER):
+            errors.append(f"case {c.id}: still has template text; write the real context and answer.")
         if c.expect == "fail" and failed_axes(c.human) != [c.fails_on]:
             errors.append(f"case {c.id}: written to fail on {c.fails_on}, but the human rubric fails on {failed_axes(c.human) or 'nothing'}.")
     return errors
@@ -230,14 +265,24 @@ def _selftest(args: argparse.Namespace) -> None:
     print(f"calibration: the rule classifies all {len(cases)} cases correctly; {rejected} are meant to be rejected")
 
 
-def _export(args: argparse.Namespace) -> None:
-    cases = load_cases(Path(args.cases) if args.cases else None)
-    with Path(args.out).open("w", newline="", encoding="utf-8") as fh:
+def write_blind(cases: tuple[Case, ...], path: Path) -> None:
+    """The cases with no verdicts, for the judge to score blind."""
+    with path.open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["id", "context", "answer", *GATED_AXES])
         for c in cases:
             w.writerow([c.id, c.context, c.answer, "", "", "", ""])
+
+
+def _export(args: argparse.Namespace) -> None:
+    cases = load_cases(Path(args.cases) if args.cases else None)
+    write_blind(cases, Path(args.out))
     print(f"calibration: wrote {len(cases)} blind cases to {args.out}; the judge fills the 4 score columns (1 to 5)")
+
+
+def _template(args: argparse.Namespace) -> None:
+    Path(args.out).write_text(json.dumps(template(), indent=2) + "\n", encoding="utf-8")
+    print(f"calibration: wrote a 7-case starter set to {args.out}; replace every WRITE: line, then run selftest --cases {args.out}")
 
 
 def _check(args: argparse.Namespace) -> None:
@@ -257,6 +302,9 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--out", required=True)
     s.add_argument("--cases")
     s.set_defaults(fn=_export)
+    s = sub.add_parser("template")
+    s.add_argument("--out", required=True)
+    s.set_defaults(fn=_template)
     s = sub.add_parser("check")
     s.add_argument("scores")
     s.add_argument("--cases")

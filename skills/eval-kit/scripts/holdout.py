@@ -11,7 +11,7 @@ case has to be a deliberate act (`holdout.py seal`), never a quiet one.
 Ported from Throughline lib/eval/holdout.ts.
 
 Usage:
-  python3 scripts/holdout.py split CASES.csv --share 0.3 --out CASES_SPLIT.csv   # assign splits to new cases
+  python3 scripts/holdout.py split CASES.csv --share 0.3 --out CASES_SPLIT.csv   # assign splits (eval rows only)
   python3 scripts/holdout.py seal TRACES.csv --out holdout.seal.json            # seal the holdout set
   python3 scripts/holdout.py verify TRACES.csv --seal holdout.seal.json         # check nothing moved
   python3 scripts/holdout.py promote TRACES.csv --champion V1 --challenger V2   # may V2 replace V1?
@@ -23,12 +23,12 @@ import argparse
 import csv
 import json
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from evalcore import EvalError, Trace, fnv1a, load_traces, pct, versions  # noqa: E402
+from evalcore import EvalError, Trace, fnv1a, load_traces, parse_map, pct, versions, wilson  # noqa: E402
 
 # The holdout must be at least this share of each version's eval cases, or it is too thin to say anything.
 MIN_HOLDOUT_SHARE = 0.2
@@ -127,6 +127,8 @@ class Verdict:
     delta: float
     new_failures: list[str]
     regressions: list[str]
+    gained: list[str] = field(default_factory=list)
+    within_noise: bool = False
 
 
 def judge_promotion(traces: list[Trace], champion: str, challenger: str) -> Verdict:
@@ -144,6 +146,12 @@ def judge_promotion(traces: list[Trace], champion: str, challenger: str) -> Verd
     rate_a = pct(sum(t.is_pass for t in a.values()), len(a))
     rate_b = pct(sum(t.is_pass for t in b.values()), len(b))
     base = {"champion": champion, "challenger": challenger, "champion_rate": rate_a, "challenger_rate": rate_b, "delta": round(rate_b - rate_a, 1)}
+    # Direction, not size: when each rate sits inside the other's 95% interval the gain is real cases but not a
+    # measured margin, and the report says so.
+    lo_a, hi_a = wilson(sum(t.is_pass for t in a.values()), len(a))
+    lo_b, hi_b = wilson(sum(t.is_pass for t in b.values()), len(b))
+    base["within_noise"] = lo_a <= rate_b <= hi_a or lo_b <= rate_a <= hi_b
+    base["gained"] = sorted(i for i in a if i in b and not a[i].is_pass and b[i].is_pass)
     if set(a) != set(b):
         return Verdict(False, "champion and challenger must run the same held-out cases", new_failures=[], regressions=[], **base)
     new_failures = sorted(i for i in a if a[i].is_pass and not b[i].is_pass)
@@ -163,7 +171,12 @@ def _split_cmd(args: argparse.Namespace) -> None:
         fields = list(reader.fieldnames or [])
     if "id" not in fields:
         raise EvalError(f"{args.cases} needs an `id` column.")
-    splits = assign_splits([r["id"] for r in rows], args.share)
+
+    # In a traces CSV only eval rows take a split; production tasks are not cases and must not use up the holdout.
+    def is_case(r: dict[str, str]) -> bool:
+        return "kind" not in fields or r.get("kind", "").strip().lower() == "eval"
+
+    splits = assign_splits([r["id"] for r in rows if is_case(r)], args.share)
     if "split" not in fields:
         fields.append("split")
     out = Path(args.out)
@@ -171,13 +184,13 @@ def _split_cmd(args: argparse.Namespace) -> None:
         w = csv.DictWriter(fh, fieldnames=fields)
         w.writeheader()
         for r in rows:
-            w.writerow({**r, "split": splits[r["id"]]})
+            w.writerow({**r, "split": splits[r["id"]] if is_case(r) else r.get("split", "")})
     held = sum(1 for s in splits.values() if s == "holdout")
     print(f"holdout: {held} of {len(splits)} cases held out; wrote {out}")
 
 
 def _seal_cmd(args: argparse.Namespace) -> None:
-    traces = load_traces(Path(args.traces))
+    traces = load_traces(Path(args.traces), parse_map(args.map))
     errors, _ = check_splits(traces)
     if errors:
         raise EvalError("cannot seal: " + " ".join(errors))
@@ -188,7 +201,7 @@ def _seal_cmd(args: argparse.Namespace) -> None:
 
 
 def _verify_cmd(args: argparse.Namespace) -> None:
-    traces = load_traces(Path(args.traces))
+    traces = load_traces(Path(args.traces), parse_map(args.map))
     errors, warnings = check_splits(traces)
     errors += verify(traces, Path(args.seal))
     for w in warnings:
@@ -199,7 +212,7 @@ def _verify_cmd(args: argparse.Namespace) -> None:
 
 
 def _promote_cmd(args: argparse.Namespace) -> None:
-    v = judge_promotion(load_traces(Path(args.traces)), args.champion, args.challenger)
+    v = judge_promotion(load_traces(Path(args.traces), parse_map(args.map)), args.champion, args.challenger)
     print(json.dumps(asdict(v), indent=2))
 
 
@@ -213,14 +226,17 @@ def main(argv: list[str] | None = None) -> None:
     s.set_defaults(fn=_split_cmd)
     s = sub.add_parser("seal", help="seal the holdout set in a traces CSV")
     s.add_argument("traces")
+    s.add_argument("--map", action="append", metavar="SCHEMA=YOURS")
     s.add_argument("--out", required=True)
     s.set_defaults(fn=_seal_cmd)
     s = sub.add_parser("verify", help="check a traces CSV against its seal")
     s.add_argument("traces")
+    s.add_argument("--map", action="append", metavar="SCHEMA=YOURS")
     s.add_argument("--seal", required=True)
     s.set_defaults(fn=_verify_cmd)
     s = sub.add_parser("promote", help="may the challenger replace the champion?")
     s.add_argument("traces")
+    s.add_argument("--map", action="append", metavar="SCHEMA=YOURS")
     s.add_argument("--champion", required=True)
     s.add_argument("--challenger", required=True)
     s.set_defaults(fn=_promote_cmd)
