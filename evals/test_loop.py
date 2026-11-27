@@ -50,7 +50,7 @@ import render_html  # noqa: E402
 import report  # noqa: E402
 import run  # noqa: E402
 import svgkit  # noqa: E402
-from evalcore import EVALS_COLUMNS, EvalError, load_traces  # noqa: E402
+from evalcore import BELOW, EVALS_COLUMNS, MEETS, NOISE, EvalError, load_traces  # noqa: E402
 
 
 def _old_python() -> str | None:
@@ -362,8 +362,8 @@ class Page(Temp):
         text = self.page()
         self.assertEqual(svgkit.unprinted(text), [])
         frame = svgkit.frames_in(text)[0]
-        self.assertIn('<span class="sc-l"><b>21 of 30</b> · 70%</span>', frame)
-        self.assertIn('<span class="sc-l"><b>24 of 30</b> · 80%</span>', frame)
+        self.assertIn('<span class="sc-l"><b>21 OF 30</b> · 70%</span>', frame)
+        self.assertIn('<span class="sc-l"><b>24 OF 30</b> · 80%</span>', frame)
         self.assertIn('<span class="sc-k"><i class="k-tg"></i>target 80%</span>', frame, "the target prints once, in the legend")
 
     def test_the_visual_states_the_answer(self) -> None:
@@ -386,8 +386,28 @@ class Page(Temp):
         self.assertEqual(len(frames), 1)
         self.assertEqual(frames[0].count('<div class="sc-r">'), len(r["versions"]))
         self.assertEqual(re.findall(r'<span class="sc-n">([^<]+)</span>', frames[0]), ["Version v1.3, 2026-10-15", "Version v1.4, 2026-11-15"])
-        self.assertIn('<span class="sc-w ink">BELOW TARGET</span>', frames[0])
-        self.assertIn('<span class="sc-w">NOT CONFIRMED: TOO CLOSE TO CALL</span>', frames[0])
+        words = re.findall(r'<span class="sc-w[^"]*">([^<]+)</span>', frames[0])
+        self.assertEqual(words, ["NOT CONFIRMED: TOO CLOSE TO CALL"] * 2, "v1.3's range, 52.1% to 83.3%, crosses the 80% target")
+
+    def test_every_version_row_reads_on_one_range_rule(self) -> None:
+        def v(lo: float, hi: float) -> dict:
+            return {"pass_ci": [lo, hi]}
+
+        self.assertEqual(render_html.range_word(v(81, 95), 80), MEETS)
+        self.assertEqual(render_html.range_word(v(80, 95), 80), MEETS)
+        self.assertEqual(render_html.range_word(v(60, 79.9), 80), BELOW)
+        self.assertEqual(render_html.range_word(v(52.1, 83.3), 80), NOISE)
+        self.assertIsNone(render_html.range_word(v(52.1, 83.3), None))
+        old, new = v(60, 70), v(70, 90)
+        self.assertEqual(render_html.version_word(old, new, 80, NOISE), '<span class="sc-w ink">BELOW TARGET</span>')
+        self.assertEqual(render_html.own_rule(new, 80, NOISE), "", "the newest row agrees with the range rule: no caption note")
+        self.assertIn("the newest prints the run's status", render_html.own_rule(new, 80, None))
+
+    def test_the_figure_column_is_numerals_and_uppercase_words(self) -> None:
+        figures = re.findall(r'<span class="sc-l">(.*?)</span>', svgkit.frames_in(self.page())[0])
+        self.assertTrue(figures)
+        for f in figures:
+            self.assertEqual(re.sub(r"<[^>]+>", "", f), re.sub(r"<[^>]+>", "", f).upper(), f)
 
     def test_no_text_inside_a_picture_and_no_scaled_picture(self) -> None:
         text = self.page()

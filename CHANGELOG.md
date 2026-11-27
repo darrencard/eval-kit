@@ -7,6 +7,7 @@
 - `--owner` names who carries out the next step; the brief's "Decides the next step" still decides it. The sample's next step is owned by the Tech lead, Quoting squad and decided by the Head of Product, Quoting squad.
 - `dist/` is no longer tracked; release assets carry the zips and their sums.
 - README and SKILL.md use plain words: project, target, the project file, and the landing brief defined once as a one-page plan. SKILL.md tells Claude to use the user's own word if they say bet. Keys, file names and flags are unchanged.
+- Fix round 4: every version row's check word follows one rule on its likely range: meets target when the low end clears the target, below target when the high end is under it, otherwise not confirmed: too close to call. v1.3 (52.1% to 83.3% against 80%) now reads too close to call, not below target. The newest row prints the run's status, and the caption says so only when that differs. The figure column prints numerals and uppercase words (`21 OF 30 · 70%`). Tests for both.
 - Tests: no text inside an SVG, no picture with a viewBox, every frame font size 12 or 14px, no box inside the frame, no legacy svgkit primitive (rendered with DeprecationWarning as an error), one frame with one row per version and its check word, each figure line printed exactly, one target tick x for the frame, the aria-label equal to the verdict, and the owner beside the decider.
 
 ## 0.3.4, 2026-11-27

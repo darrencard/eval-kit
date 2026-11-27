@@ -170,16 +170,29 @@ def pct(v: float) -> str:
 # The scorecard
 
 
+def range_word(r: dict, target: float | None) -> str | None:
+    """The check rule for one version, read on its likely range alone: meets target only when the range's low end
+    clears the target, below target only when its high end is under it, otherwise not confirmed: too close to call.
+    None when no target is set."""
+    if target is None:
+        return None
+    lo, hi = r["pass_ci"]
+    if lo >= target:
+        return MEETS
+    if hi < target:
+        return BELOW
+    return NOISE
+
+
+def row_word(r: dict, latest: dict, target: float | None, status: str | None) -> str | None:
+    """The newest row prints the run's own status, as the project file stores it; every earlier row, range_word."""
+    return status if r is latest else range_word(r, target)
+
+
 def version_word(r: dict, latest: dict, target: float | None, status: str | None) -> str:
-    """The check word for one version's row. The newest prints the run's own status, as the record stores it. An
-    earlier version reads below target when its rate is under the target (the same first rule decide_status
-    applies); otherwise this run confirms nothing about it, and it says so."""
-    if r is latest:
-        word = PLAIN.get(status, status)
-        return sk.check_word(word.upper(), ink=status == BELOW)
-    if target is not None and r["pass_rate"] < target:
-        return sk.check_word(BELOW.upper(), ink=True)
-    return sk.check_word("not confirmed")
+    """The check word for one version's row, as mono text; below target in ink."""
+    word = row_word(r, latest, target, status)
+    return sk.check_word(PLAIN.get(word, word).upper(), ink=word == BELOW)
 
 
 def answer(latest: dict, target: float | None, status: str | None) -> str:
@@ -197,7 +210,7 @@ def scorecard(rows: list[dict], target: float | None, status: str | None, illust
     out = []
     for r in rows:
         picture = sk.range_line(actual=r["pass_rate"], target=target, domain=domain)
-        figure = sk.figure_line(f"{r['passed']} of {r['cases']}", tail=pct(r["pass_rate"]))
+        figure = sk.figure_line(f"{r['passed']} OF {r['cases']}", tail=pct(r["pass_rate"]))
         out.append(sk.sc_row(f"Version {r['version']}, {r['run_at']}", picture=picture, figure=figure, word=version_word(r, latest, target, status)))
     key = sk.legend("target", f"target {pct(target)}") if target is not None else ""
     return sk.sc_frame(
@@ -208,9 +221,18 @@ def scorecard(rows: list[dict], target: float | None, status: str | None, illust
         legend=key,
         caption="One row per version, on one scale: the dot is the share of test cases kept back that it passes"
         + (", the tick the target." if target is not None else ".")
-        + " The likely range of the newest rate is in the figures below.",
+        + " The likely range of the newest rate is in the figures below."
+        + own_rule(latest, target, status),
         illustrative=illustrative,
     )
+
+
+def own_rule(latest: dict, target: float | None, status: str | None) -> str:
+    """A caption sentence only when the newest row's word is not the range rule's: its status also checks the seal,
+    the judge and new held-out failures."""
+    if status == range_word(latest, target):
+        return ""
+    return " Earlier rows are read on their likely range; the newest prints the run's status, which also checks the seal, the judge and new failures."
 
 
 # The words
