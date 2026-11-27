@@ -4,7 +4,7 @@ description: Sets up and reports evals for one AI feature from traces or eval re
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.3.2"
+  version: "0.3.3"
 ---
 
 # Eval kit
@@ -42,7 +42,7 @@ The traces can be CSV or JSONL (one JSON object per line, as most trace tools ex
 
 ## In the Landing Loop
 
-eval-kit is step 03 (Build) of the Landing Loop: five skills and the Leader Report on one landing brief, sharing one record per bet, `landing/<bet>.json`.
+eval-kit is step 03 (Build) of the Landing Loop: eleven skills and the Leader Report on one landing brief, sharing one record per bet, `landing/<bet>.json`.
 
 ```bash
 python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <bet-slug> --out run
