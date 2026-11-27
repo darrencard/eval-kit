@@ -275,7 +275,7 @@ def write_evals_csv(report: dict, path: Path) -> None:
 def markdown(report: dict, evals: dict | None = None) -> str:
     latest = next(r for r in report["versions"] if r["version"] == report["latest"])
     led = latest["ledger"]
-    out = [f"# Evals: {report['feature']}", ""]
+    out = [f"# Eval kit: {report['feature']}", ""]
     if report["illustrative"]:
         out += ["> Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.", ""]
     status = evals["status"] if evals else report["status"]

@@ -44,28 +44,28 @@ main.solo{margin-left:0}
 .solo h1{font-size:clamp(34px,4.6vw,60px);line-height:1;letter-spacing:-.04em;max-width:20ch;margin-bottom:20px}
 .solo .lede{margin-bottom:24px}
 .solo h2{margin-bottom:16px}
-.status{display:inline-block;font:400 10px/16px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t1);border:1px solid var(--line3);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.status{display:inline-block;font:400 11px/16px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t1);border:1px solid var(--line3);border-radius:3px;padding:1px 6px;white-space:nowrap}
 .verdict{margin:0 0 20px}
 .panel{border:1px solid var(--line);border-radius:12px;background:var(--s1);padding:24px 28px 20px}
 @media (min-width:1100px){.panel .sk{display:grid;grid-template-columns:720px minmax(0,1fr);gap:16px 40px;align-items:center}.panel .sk figcaption{margin-top:0;flex-direction:column;align-items:flex-start}}
 .next{margin-top:28px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px 32px;align-items:baseline;border:1px solid var(--brass);border-radius:12px;padding:20px 24px;background:var(--brass-bg)}
-.next>b{font:400 10px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.next>b{font:400 11px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
 .next p{margin:0;font-size:16px;line-height:1.5;color:var(--t1)}
 .next .who{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:10px;font:400 11.5px/16px var(--mono);color:var(--brass)}
-.next .who span::before{font-size:10px;letter-spacing:.1em;color:var(--t3);margin-right:8px}
+.next .who span::before{font-size:11px;letter-spacing:.1em;color:var(--t3);margin-right:8px}
 .next .who .o::before{content:"DECIDES"}.next .who .d::before{content:"DUE"}
 .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 56px;align-items:start}
 .cols h3{margin-bottom:8px}
 .figs{margin:0;display:grid}
 .figs>div{display:grid;grid-template-columns:132px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:11px 0}
-.figs dt{font:400 10px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.figs dt{font:400 11px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
 .figs dd{margin:0;font-size:13.5px;line-height:1.55;color:var(--t2)}
 .figs dd b{color:var(--t1);font-weight:500}
 .fails{margin:0;padding:0;list-style:none}
 .fails li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:11px 0;font-size:13.5px;line-height:1.5;color:var(--t2)}
 .fails .pc{font:400 12px/20px var(--mono);color:var(--t1);font-variant-numeric:tabular-nums}
 .fails .pc i{display:block;height:4px;margin-top:6px;border-radius:1px;background:var(--agent)}
-.fails small{display:block;font:400 10px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.fails small{display:block;font:400 11px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:2px}
 .solo details{margin-top:4px}
 .solo details>*:not(summary){margin-top:12px}
 .solo details p,.solo details li{margin:0 0 10px;font-size:13px;color:var(--t2);max-width:80ch}
@@ -78,8 +78,9 @@ main.solo{margin-left:0}
 @media (max-width:980px){.foot{padding:24px 16px 48px}.solo .slide.cover{padding-top:24px}.cols,.next{grid-template-columns:1fr}.panel{padding:18px 16px 16px}
 .stack table,.stack tbody,.stack tr,.stack td{display:block}.stack tr:first-child{display:none}.stack tr{padding:10px 16px;border-bottom:1px solid var(--line)}
 .stack td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}.stack td.num{text-align:left;white-space:normal}
-.stack td::before{content:attr(data-l);font:400 10px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
+.stack td::before{content:attr(data-l);font:400 11px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
 @media (max-width:560px){.figs>div{grid-template-columns:1fr;gap:0}}
+@media (max-width:440px){.panel{margin:0 -8px;padding:16px 8px 14px}}
 """
 
 # The check words as the record stores them, and as the page prints them.
@@ -104,6 +105,21 @@ def plain(text: str) -> str:
     for pattern, to in WORDS:
         text = re.sub(pattern, to, text)
     return text
+
+
+FONT_FLOOR = 11  # px: no text on the page renders smaller, at any width
+FONT_SIZE = re.compile(r"(font-size\s*:\s*)(\d+(?:\.\d+)?)px")
+FONT_SHORTHAND = re.compile(r"(font\s*:[^;{}]*?)(?<![\w.-])(\d+(?:\.\d+)?)px")
+
+
+def floor_fonts(css: str) -> str:
+    """Raise every font size under 11px to 11px. The vendored template and svgkit stay byte-identical on disk;
+    the floor applies to their text as the page is built, so this page's CSS has no smaller size anywhere."""
+
+    def up(m: re.Match[str]) -> str:
+        return f"{m.group(1)}{FONT_FLOOR if float(m.group(2)) < FONT_FLOOR else m.group(2)}px"
+
+    return FONT_SHORTHAND.sub(up, FONT_SIZE.sub(up, css))
 
 
 def stylesheet() -> str:
@@ -329,7 +345,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
     target = report["target"]
     as_of = evals["as_of"] if evals else latest["run_at"]
 
-    header = sk.page_header("eval-kit", date=as_of, version=f"v{VERSION}", illustrative=report["illustrative"])
+    header = sk.page_header("Eval kit", date=as_of, version=f"v{VERSION}", illustrative=report["illustrative"])
     pic = sk.figure(
         range_chart(rows, target, status, "wide"),
         range_chart(rows, target, status, "tall"),
@@ -384,6 +400,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
     eng.append(
         "<p>With --brief and --bet, the run adds its page to the project file: the <code>evals</code> key of <code>landing/&lt;bet&gt;.json</code>, "
         "and no other key. --fail-on below-target or blocking turns the check into a CI gate (exit code 2).</p>"
+        f"<p>Built by eval-kit {esc(VERSION)}.</p>"
     )
     folds.append(fold("For your engineers", "".join(eng)))
     more = f'<section class="slide"><div class="meta"><span>Detail</span></div>{"".join(folds)}</section>'
@@ -391,7 +408,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
     title = esc(f"Quality test: {report['feature']}")
     return (
         '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<title>{title}</title><style>{stylesheet()}{sk.CSS}{PAGE_CSS}</style></head><body><main class="solo">{cover}{detail}{more}'
+        f'<title>{title}</title><style>{floor_fonts(stylesheet() + sk.CSS + PAGE_CSS)}</style></head><body><main class="solo">{cover}{detail}{more}'
         '<p class="foot">This quality test says whether the AI clears its target before release. It is not the project\'s result: only did-it-land reads that. '
         "Every figure is computed in code from the logs named, and cost is cited from cost-budget-check.</p></main></body></html>\n"
     )

@@ -8,6 +8,7 @@
 - The By version table prints each version's likely range, so the picture draws no figure the page does not print.
 - Tests: the picture draws only printed figures, states the answer in its aria-label, and the page uses no status colour; the vendored svgkit matches its pin.
 - `report.write` and `render_html.render` take the landing brief, so the next step names who decides. No change to what the skill computes; `skill_version` in the record moves to 0.3.4.
+- Fix round 2: no text under 11px at any width. The vendored template and svgkit stay byte-identical; `floor_fonts` raises their smaller sizes to 11px as the page is built, and on phones the picture's panel gives the 340 wide variant its full width so its labels never shrink. The header prints the plain name, "Eval kit", and so does the Markdown twin's title; the code name prints only for engineers ("Built by eval-kit 0.3.4."). Tests: no font size under 11px in the page's CSS, the header's name, and no "record", "bet", "the bar", "PRD", "ARR" or "tokens" in public copy.
 
 ## 0.3.3, 2026-11-26
 

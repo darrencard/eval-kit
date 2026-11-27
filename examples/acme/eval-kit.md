@@ -1,4 +1,4 @@
-# Evals: Quote drafting
+# Eval kit: Quote drafting
 
 > Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.
 

@@ -326,8 +326,8 @@ class Page(Temp):
 
     def test_on_the_leader_report_template(self) -> None:
         text = self.page()
-        template = render_html.STYLE.search((VENDOR / "template.html").read_text(encoding="utf-8")).group(1)
-        self.assertIn(template, text, "the page carries the template's whole stylesheet, unchanged")
+        template = render_html.floor_fonts(render_html.STYLE.search((VENDOR / "template.html").read_text(encoding="utf-8")).group(1))
+        self.assertIn(template, text, "the page carries the template's whole stylesheet, with only its font sizes floored at 11px")
         self.assertIn('<span translate="no">DACARD</span>', text)
         self.assertIn('<span class="sk-ill">Illustrative</span>', text)
         self.assertIn(":root{--ill:#74A5DA}", text, "the Illustrative tag is blue")
@@ -372,9 +372,35 @@ class Page(Temp):
         self.assertIn("with no target set.", render_html.range_chart(r["versions"], None, None, "wide"))
 
     def test_public_copy_uses_plain_words(self) -> None:
-        public = svgkit.page_text(self.page().split("For your engineers", 1)[0]).lower()
+        # The header prints the skill's plain name, "Eval kit"; the words below are checked in everything after it.
+        public = svgkit.page_text(self.page().split("</header>", 1)[1].split("For your engineers", 1)[0]).lower()
         for word in ("held-out", "holdout", "95% interval", "inside noise", "eval ", "evals ", "judge", "autonomy", "traces"):
             self.assertNotIn(word, public)
+        for word in (r"\brecords?\b", r"\bbets?\b", r"\bthe bar\b", r"\bprds?\b", r"\barr\b", r"\btokens?\b"):
+            self.assertIsNone(re.search(word, public), word)
+
+    def test_no_text_is_smaller_than_11px(self) -> None:
+        text = self.page()
+        css = " ".join(re.findall(r"<style>(.*?)</style>", text, re.DOTALL)) + " " + " ".join(re.findall(r'style="([^"]*)"', text))
+        sizes = re.findall(r"font-size\s*:\s*([\d.]+)px", css) + re.findall(r"font\s*:[^;{}]*?(?<![\w.-])([\d.]+)px", css)
+        sizes += re.findall(r'font-size="([\d.]+)"', text)
+        self.assertTrue(sizes)
+        self.assertEqual([s for s in sizes if float(s) < 11], [])
+        self.assertNotRegex(css, r"font-size\s*:\s*[\d.]+r?em")
+        before, after = (
+            ".a{font:400 10px/16px var(--mono)}.b{font-size:10.5px}.c{font-size:13px}",
+            ".a{font:400 11px/16px var(--mono)}.b{font-size:11px}.c{font-size:13px}",
+        )
+        self.assertEqual(render_html.floor_fonts(before), after)
+        # The phone picture is 340 wide; on a 390px screen the panel gives it 356px, so its 11px labels never shrink.
+        self.assertIn("@media (max-width:440px){.panel{margin:0 -8px;padding:16px 8px 14px}}", text)
+
+    def test_the_header_prints_the_plain_name_and_the_code_name_is_for_engineers(self) -> None:
+        text = self.page()
+        self.assertEqual(re.search(r'<span class="sk-meta"><span>(.*?)</span>', text).group(1), "Eval kit")
+        public, fold = text.split("For your engineers", 1)
+        self.assertNotIn("eval-kit", svgkit.page_text(public).lower())
+        self.assertIn(f"Built by eval-kit {landing.VERSION}.", fold)
 
     def test_no_cost_figure_without_the_cost_key(self) -> None:
         text = self.page()
