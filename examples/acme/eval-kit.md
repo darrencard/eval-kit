@@ -2,12 +2,11 @@
 
 > Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.
 
-**Status: meets target.** Held-out pass rate 80% meets the 80% target on a sealed holdout.
+**Status: not confirmed: inside noise.** Held-out pass rate 80% meets the 80% target only as a point estimate: 24 of 30 has a 95% interval of 62.7% to 90.5%, which reaches under it; a rate exactly at the target never clears it, however many cases, so it needs a rate above 80%.
 
 Against the landing brief: The brief's metric, Quote draft acceptance rate, is not an eval figure. did-it-land judges it; these evals are the build check.
 
 Version v1.4 passes 24 of 30 held-out cases (80%, 95% interval 62.7 to 90.5) [L4], against 90% on development [L5].
-The interval's low end, 62.7%, is under the 80% target. More held-out cases would settle it.
 It finished 143 of 200 production tasks with no person stepping in (71.5%, 95% interval 64.9 to 77.3) [L6].
 Cost per task, cited from cost-budget-check: $0.0338 [L7].
 

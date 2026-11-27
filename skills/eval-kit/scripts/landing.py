@@ -17,13 +17,17 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 11):  # checked first, before anything is read or written
+    sys.exit("eval-kit needs Python 3.11 or later; try python3.12")
+
 import argparse
 import datetime
 import hashlib
 import json
 import os
 import re
-import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -32,8 +36,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "vendor"))
 
-import landing_brief  # noqa: E402  (vendored, unchanged; see vendor/PINS.json)
-from evalcore import BELOW, EVALS_COLUMNS, MEETS, EvalError  # noqa: E402
+import landing_brief  # noqa: E402  (vendored, unchanged; see vendor/VENDORED.json)
+from evalcore import BELOW, EVALS_COLUMNS, MEETS, NOISE, EvalError, clears, noise_reason  # noqa: E402
 
 SCHEMA = "landing-loop/1"
 SKILL = "eval-kit"
@@ -92,19 +96,26 @@ def judge(brief: landing_brief.Brief, report: dict, as_of: str) -> dict[str, Any
     status = MEETS if meets else BELOW
     notes = []
     ci = latest["pass_ci"] if name == "pass_rate" else latest["autonomy_ci"]
-    if meets and ci and ci[0] < brief.bar:
-        notes.append(f"the 95% interval reaches {ci[0]:g}%, under the bar")
+    if meets and not clears(ci, brief.bar, brief.higher_is_better):
+        # Same rule as the run's own status: a point estimate inside the noise does not meet the bar.
+        status = NOISE
+        part, whole = (latest["passed"], latest["cases"]) if name == "pass_rate" else (latest["tasks_unassisted"], latest["tasks"])
+        notes.append(noise_reason(LABELS[name].lower(), part, whole, value, ci, brief.bar, brief.higher_is_better, "bar"))
     if not meets and datetime.date.fromisoformat(as_of) > datetime.date.fromisoformat(brief.by):
         notes.append(f"the date, {brief.by}, has passed")
     return {**base, "judged": name, "status": status, "value": value, "prior": prior, "note": "; ".join(notes)}
 
 
 def combined(own: str | None, against: dict[str, Any]) -> str | None:
-    """below target if either reads below; meets target only when the run meets it and the brief does not say less."""
-    if BELOW in (own, against["status"]):
+    """below target if either reads below; meets target only when both clear their bar outside the noise; not
+    confirmed: inside noise when the only thing missing is an interval that clears the bar; else None."""
+    theirs = against["status"] if against["judged"] else MEETS
+    if BELOW in (own, theirs):
         return BELOW
-    if own == MEETS and (against["judged"] is None or against["status"] == MEETS):
+    if own == MEETS and theirs == MEETS:
         return MEETS
+    if {own, theirs} <= {MEETS, NOISE}:
+        return NOISE
     return None
 
 

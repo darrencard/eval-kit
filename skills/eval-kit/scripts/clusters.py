@@ -19,11 +19,15 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 11):  # checked first, before anything is read or written
+    sys.exit("eval-kit needs Python 3.11 or later; try python3.12")
+
 import argparse
 import json
 import math
 import re
-import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))

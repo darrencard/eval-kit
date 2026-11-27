@@ -5,7 +5,7 @@ Usage:
   python3 -m unittest discover -s evals -v
 
 Groups:
-  Vendored      the vendored Leader Report files are byte for byte what PINS.json names.
+  Vendored      the vendored Leader Report files are byte for byte what VENDORED.json names.
   AgainstBrief  pass rate and autonomy judged against the brief's definition of good, with its own rule.
   LoopRecord    only the `evals` key of landing/<bet>.json is written; every other key is kept.
   Page          one self-contained HTML page in the style guide, every trace text escaped.
@@ -17,10 +17,13 @@ Standard library only. Runs on Python 3.11 or later.
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import io
 import json
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -49,6 +52,21 @@ import run  # noqa: E402
 from evalcore import EVALS_COLUMNS, EvalError, load_traces  # noqa: E402
 
 
+def _old_python() -> str | None:
+    """A Python older than 3.11 on this machine, to prove the guard runs first; None when there is none."""
+    for name in ("python3.9", "python3.10", "/usr/bin/python3"):
+        exe = shutil.which(name)
+        if not exe:
+            continue
+        done = subprocess.run([exe, "-c", "import sys; print(sys.version_info < (3, 11))"], capture_output=True, text=True, check=False)  # noqa: S603
+        if done.stdout.strip() == "True":
+            return exe
+    return None
+
+
+OLD_PYTHON = _old_python()
+
+
 def build(**kw) -> dict:
     base = {"traces": str(TRACES), "feature": "Quote drafting", "seal": str(SEAL), "judge_scores": str(JUDGE), "calibration_cases": None}
     base.update({"target": 80.0, "illustrative": True, "map": None})
@@ -67,14 +85,14 @@ class Temp(unittest.TestCase):
 
 class Vendored(unittest.TestCase):
     def test_every_vendored_file_matches_its_pin(self) -> None:
-        pins = json.loads((VENDOR / "PINS.json").read_text(encoding="utf-8"))
+        pins = json.loads((VENDOR / "VENDORED.json").read_text(encoding="utf-8"))
         self.assertRegex(pins["commit"], r"^[0-9a-f]{40}$")
-        on_disk = {p.name for p in VENDOR.iterdir() if p.name not in ("PINS.json", "README.md", "__pycache__")}
+        on_disk = {p.name for p in VENDOR.iterdir() if p.name not in ("VENDORED.json", "README.md", "__pycache__")}
         self.assertEqual(on_disk, set(pins["files"]))
         for name, pin in pins["files"].items():
             with self.subTest(name=name):
                 digest = hashlib.sha256((VENDOR / name).read_bytes()).hexdigest()
-                self.assertEqual(digest, pin["sha256"], f"{name} changed. Copy it again from the Leader Report and update PINS.json.")
+                self.assertEqual(digest, pin["sha256"], f"{name} changed. Copy it again from the Leader Report and update VENDORED.json.")
 
     def test_the_acme_brief_parses_with_the_vendored_parser(self) -> None:
         brief = landing_brief.parse(BRIEF.read_text(encoding="utf-8"))
@@ -96,9 +114,9 @@ class AgainstBrief(Temp):
     def test_pass_rate_read_against_the_briefs_bar(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF), "2026-11-26")
         a = key["against_brief"]
-        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "meets target", 80.0, 70.0))
+        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "not confirmed: inside noise", 80.0, 70.0))
         self.assertIn("62.7%", a["note"])
-        self.assertEqual(key["status"], "meets target")
+        self.assertEqual(key["status"], "not confirmed: inside noise")
         self.assertFalse(key["blocking"])
 
     def test_autonomy_below_the_bar_reads_below_target(self) -> None:
@@ -112,7 +130,21 @@ class AgainstBrief(Temp):
         for brief in (BRIEF, BRIEF_AUTONOMY, BRIEF_PRODUCT):
             key = landing.evals_key(build(), landing.read_brief(brief), "2026-11-26")
             for status in (key["status"], key["against_brief"]["status"]):
-                self.assertIn(status, {"meets target", "below target", None})
+                self.assertIn(status, {"meets target", "below target", "not confirmed: inside noise", None})
+
+    def test_combined_status(self) -> None:
+        judged = {"judged": "pass_rate"}
+        cases = [
+            (("meets target", "meets target"), "meets target"),
+            (("meets target", "not confirmed: inside noise"), "not confirmed: inside noise"),
+            (("not confirmed: inside noise", "meets target"), "not confirmed: inside noise"),
+            (("not confirmed: inside noise", "below target"), "below target"),
+            ((None, "meets target"), None),
+        ]
+        for (own, theirs), want in cases:
+            with self.subTest(own=own, theirs=theirs):
+                self.assertEqual(landing.combined(own, {**judged, "status": theirs}), want)
+        self.assertEqual(landing.combined("not confirmed: inside noise", {"judged": None, "status": None}), "not confirmed: inside noise")
 
     def test_a_passed_date_is_named(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF_AUTONOMY), "2027-01-15")
@@ -218,9 +250,9 @@ class LoopRecord(Temp):
         with redirect_stdout(io.StringIO()):
             run.main(args)
         rec = json.loads((folder / "quote-drafting-assistant.json").read_text(encoding="utf-8"))
-        self.assertEqual(rec["evals"]["status"], "meets target")
+        self.assertEqual(rec["evals"]["status"], "not confirmed: inside noise")
         self.assertEqual(rec["evals"]["as_of"], "2026-11-15")
-        self.assertIn("Against the landing brief: **meets target**", (out / "report.md").read_text(encoding="utf-8"))
+        self.assertIn("Against the landing brief: **not confirmed: inside noise**", (out / "report.md").read_text(encoding="utf-8"))
         self.assertIn("Against the landing brief", (out / "report.html").read_text(encoding="utf-8"))
 
     def run_loop(self, record: dict | None) -> dict:
@@ -282,11 +314,31 @@ class Page(Temp):
 
     def test_status_prints_as_plain_words_with_no_status_colour(self) -> None:
         text = self.page()
-        self.assertIn('<span class="status">meets target</span>', text)
-        body = text.split("<main>", 1)[1]
+        self.assertIn('<span class="status">not confirmed: inside noise</span>', text)
+        body = text.split('<main class="solo">', 1)[1]
         for word in ("landed", "watch", "stalled", "var(--landed)", "var(--watch)", "var(--stalled)"):
             self.assertNotIn(word, body)
         self.assertIn("Illustrative", text)
+
+    def test_on_the_leader_report_template(self) -> None:
+        text = self.page()
+        template = render_html.STYLE.search((VENDOR / "template.html").read_text(encoding="utf-8")).group(1)
+        self.assertIn(template, text, "the page carries the template's whole stylesheet, unchanged")
+        self.assertIn('<span translate="no">DACARD</span>', text)
+        self.assertIn('<span class="ill">Illustrative</span>', text)
+        css = text.split(template, 1)[1].split("</style>", 1)[0]
+        for rule in (".ill{color:var(--t1)}", "::selection{background:var(--t1)", ":focus-visible{outline-color:var(--t1)}"):
+            self.assertIn(rule, css, "the page's own rules come after the template's, so they win")
+        self.assertNotIn("brass", css)
+        self.assertNotIn('class="ok"', text, "the template's healthy-side band is green, a status colour")
+
+    def test_a_leader_gets_the_point_first(self) -> None:
+        text = self.page()
+        body = text.split('<main class="solo">', 1)[1]
+        self.assertIn("Build check: not confirmed: inside noise.", body.split("</p>", 1)[0])
+        self.assertEqual(body.split('<ul class="summary">', 1)[1].split("</ul>", 1)[0].count("<li>"), 5)
+        self.assertIn("<details", body)
+        self.assertLess(body.index("Scorecard"), body.index("<details"))
 
     def test_no_cost_figure_without_the_cost_key(self) -> None:
         text = self.page()
@@ -406,6 +458,70 @@ class SampleTest(unittest.TestCase):
         self.assertEqual(set(record), {"schema", "bet", "brief", "cost", "evals"})
         self.assertEqual(record["cost"], upstream["cost"])  # read, cited, never rewritten
         self.assertEqual(record["brief"]["sha256"], upstream["brief"]["sha256"])
+
+    def test_upstream_brief_path_is_the_records(self):
+        # The landing-loop record holds the brief path relative to examples/acme; the copy must match it exactly.
+        upstream = json.loads((ROOT / "examples" / "acme" / "upstream" / "cost-budget-check.json").read_text(encoding="utf-8"))
+        self.assertEqual(upstream["brief"]["path"], "briefs/quote-drafting.md")
+
+    def test_a_failed_run_leaves_the_record_alone(self):
+        sys.path.insert(0, str(ROOT / "examples" / "acme"))
+        import sample
+
+        with tempfile.TemporaryDirectory() as tmp:
+            record = Path(tmp) / "landing" / "quote-drafting.json"
+            record.parent.mkdir()
+            record.write_text('{"evals": "kept"}\n', encoding="utf-8")
+
+            def crash(argv):
+                raise RuntimeError("crash mid-run")
+
+            real, sample.run.main = sample.run.main, crash
+            try:
+                with self.assertRaises(RuntimeError):
+                    sample.main(["--into", tmp])
+            finally:
+                sample.run.main = real
+            self.assertEqual(record.read_text(encoding="utf-8"), '{"evals": "kept"}\n')
+            self.assertFalse((Path(tmp) / "eval-kit.html").exists())
+
+
+CANDIDATES = [*SCRIPTS.glob("*.py"), *(ROOT / "examples").rglob("*.py"), ROOT / "evals" / "make_fixture.py"]
+ENTRY_SCRIPTS = sorted(p for p in CANDIDATES if '__name__ == "__main__"' in p.read_text(encoding="utf-8"))
+
+
+class Floor(unittest.TestCase):
+    """Python 3.11 or later, checked before anything is read or written."""
+
+    def test_every_entry_script_checks_the_version_first(self):
+        self.assertGreaterEqual(len(ENTRY_SCRIPTS), 9)
+        for path in ENTRY_SCRIPTS:
+            with self.subTest(script=path.name):
+                body = ast.parse(path.read_text(encoding="utf-8")).body
+                body = [n for n in body if not (isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant))]
+                body = [n for n in body if not (isinstance(n, ast.ImportFrom) and n.module == "__future__")]
+                self.assertEqual(ast.unparse(body[0]), "import sys")
+                self.assertIsInstance(body[1], ast.If)
+                self.assertIn("sys.version_info < (3, 11)", ast.unparse(body[1].test))
+                self.assertIn("python3.12", ast.unparse(body[1]))
+
+    @unittest.skipUnless(OLD_PYTHON, "no Python older than 3.11 on this machine")
+    def test_an_old_python_is_refused_and_the_record_kept(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            record = Path(tmp) / "landing" / "quote-drafting.json"
+            record.parent.mkdir()
+            record.write_text('{"evals": "kept"}\n', encoding="utf-8")
+            for script in (ROOT / "examples" / "acme" / "sample.py", SCRIPTS / "run.py"):
+                with self.subTest(script=script.name):
+                    done = subprocess.run([OLD_PYTHON, str(script), "--into", tmp], capture_output=True, text=True, check=False)  # noqa: S603
+                    self.assertEqual(done.returncode, 1)
+                    self.assertIn("needs Python 3.11 or later; try python3.12", done.stderr)
+            self.assertEqual(record.read_text(encoding="utf-8"), '{"evals": "kept"}\n')
+
+    def test_skill_description_fits(self):
+        text = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
+        description = re.search(r"^description: (.*)$", text, re.M).group(1)
+        self.assertLess(len(description), 1024)
 
 
 if __name__ == "__main__":

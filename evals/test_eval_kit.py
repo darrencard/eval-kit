@@ -44,6 +44,7 @@ sys.path.insert(0, str(ROOT / "evals"))
 
 import calibration  # noqa: E402
 import clusters  # noqa: E402
+import evalcore  # noqa: E402
 import holdout  # noqa: E402
 import make_fixture  # noqa: E402
 import report  # noqa: E402
@@ -434,7 +435,7 @@ class Report(Temp):
     def test_figures_on_the_fixture(self) -> None:
         r = self.run_report()
         latest = r["versions"][-1]
-        self.assertEqual(r["status"], "meets target")
+        self.assertEqual(r["status"], "not confirmed: inside noise")
         self.assertFalse(r["blocking"])
         self.assertEqual((latest["cases"], latest["passed"], latest["pass_rate"]), (30, 24, 80.0))
         self.assertEqual((latest["dev_cases"], latest["dev_passed"]), (70, 63))
@@ -498,7 +499,7 @@ class Report(Temp):
             if row["kind"] == "eval":
                 row["passed"] = "true" if float(row["score"]) >= 0.6 else "false"
                 row["score"] = ""
-        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), judge_scores=None)
+        r = self.run_report(traces=write_rows(rows, self.tmp / "t.csv"), judge_scores=None, target=60.0)
         self.assertEqual(r["status"], "meets target")
 
     def test_no_target_gives_no_status(self) -> None:
@@ -575,7 +576,39 @@ class Report(Temp):
 
     def test_status_vocabulary(self) -> None:
         for kw in ({}, {"seal": None}, {"target": 99.0}, {"target": None}):
-            self.assertIn(self.run_report(**kw)["status"], {"meets target", "below target", None})
+            self.assertIn(self.run_report(**kw)["status"], {"meets target", "below target", "not confirmed: inside noise", None})
+
+    def test_24_of_30_never_reads_as_a_precise_80(self) -> None:
+        r = self.run_report()
+        self.assertEqual(r["status"], "not confirmed: inside noise")
+        why = r["reasons"][0]
+        self.assertIn("62.7% to 90.5%", why)
+        self.assertIn("however many cases", why)
+        self.assertIn("**Status: not confirmed: inside noise.**", report.markdown(r))
+
+    def test_meets_target_only_when_the_interval_clears_it(self) -> None:
+        r = self.run_report(target=60.0)
+        self.assertEqual(r["status"], "meets target")
+        self.assertIn("low end 62.7%", r["reasons"][0])
+
+    def test_inside_noise_names_the_cases_that_would_settle_it(self) -> None:
+        r = self.run_report(target=75.0)
+        self.assertEqual(r["status"], "not confirmed: inside noise")
+        need = evalcore.cases_to_clear(80.0, 75.0)
+        self.assertIn(f"{need} cases would clear it", r["reasons"][0])
+
+    def test_cases_to_clear_is_the_fewest_that_clear(self) -> None:
+        need = evalcore.cases_to_clear(85.0, 80.0)
+        self.assertTrue(evalcore.clears(evalcore.wilson(0.85 * need, need), 80.0))
+        self.assertFalse(evalcore.clears(evalcore.wilson(0.85 * (need - 1), need - 1), 80.0))
+        self.assertIsNone(evalcore.cases_to_clear(80.0, 80.0))
+        self.assertIsNone(evalcore.cases_to_clear(70.0, 80.0))
+        self.assertIsNotNone(evalcore.cases_to_clear(10.0, 20.0, higher_is_better=False))
+
+    def test_inside_noise_and_another_gap_is_not_confirmed(self) -> None:
+        r = self.run_report(seal=None)
+        self.assertIsNone(r["status"])
+        self.assertTrue(any("inside" in x or "point estimate" in x for x in r["reasons"]))
 
 
 class OneCommand(Temp):
@@ -600,8 +633,16 @@ class OneCommand(Temp):
         out = self.tmp / "run"
         with redirect_stdout(io.StringIO()):
             run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out)])
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
+            run.main([str(src), "--feature", "x", "--target", "60", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
         self.assertEqual(json.loads((out / "report.json").read_text(encoding="utf-8"))["status"], "meets target")
+
+    def test_inside_noise_fails_a_below_target_gate_but_not_a_blocking_one(self) -> None:
+        src = self.copy_traces()
+        with redirect_stdout(io.StringIO()):
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "a"), "--judge-scores", str(JUDGE), "--fail-on", "blocking"])
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "b"), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
+        self.assertEqual(ctx.exception.code, 2)
 
     def test_fail_on_gates_ci(self) -> None:
         src = self.copy_traces()

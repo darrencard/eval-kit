@@ -20,11 +20,15 @@ nothing is guessed. Eval items keep a `split` from the dataset item when it has 
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 11):  # checked first, before anything is read or written
+    sys.exit("eval-kit needs Python 3.11 or later; try python3.12")
+
 import argparse
 import csv
 import datetime
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "vendor"))
 
-import from_posthog  # noqa: E402  (vendored, unchanged; see vendor/PINS.json)
+import from_posthog  # noqa: E402  (vendored, unchanged; see vendor/VENDORED.json)
 from evalcore import COLUMNS, EvalError  # noqa: E402
 
 Json = dict[str, Any]

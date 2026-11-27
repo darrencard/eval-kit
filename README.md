@@ -56,7 +56,7 @@ Same inputs, same bytes: a test checks the command reproduces the committed file
 | One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
 | One owner for cost | Computes no cost of its own; cites cost per task from cost-budget-check's `cost` key, or says "cost not checked: run cost-budget-check" | One cost figure across the loop, never two that disagree |
 | Leader Report source | Writes `evals.csv` in the Product & Technology Leader Report's columns | One run feeds your board update |
-| Build check | meets target or below target, with every reason. landed, watch and stalled are a bet's status and only did-it-land sets them | A build check never reads as a bet's result |
+| Build check | meets target (only when the 95% interval's low end clears the target), not confirmed: inside noise (with the interval and the cases that would settle it), or below target, with every reason. landed, watch and stalled are a bet's status and only did-it-land sets them | A build check never reads as a bet's result |
 
 The fixture is Acme, an invented invoicing company for trades businesses, and its quote-drafting assistant. Every figure it produces is illustrative.
 

@@ -9,12 +9,14 @@ dependencies = []
 [tool.ruff]
 line-length = 160
 target-version = "py311"
-# Copied byte for byte from the Leader Report at a pinned commit (see vendor/PINS.json); linted there, never edited here.
+# Copied byte for byte from the Leader Report at a pinned commit (see vendor/VENDORED.json); linted there, never edited here.
 extend-exclude = ["skills/eval-kit/scripts/vendor"]
 
 [tool.ruff.lint]
 # E, F: errors and unused names. I: import order. B: likely bugs. UP: old syntax. SIM: needless complexity. S: security.
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
+# UP036: each entry script checks for Python 3.11 first, so an older Python gets a plain message, not a crash.
+ignore = ["UP036"]
 
 [tool.ruff.lint.per-file-ignores]
 # The fixture generator and tests draw synthetic rows with random; nothing they make is a secret.

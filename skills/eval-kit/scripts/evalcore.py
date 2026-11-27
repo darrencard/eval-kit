@@ -14,9 +14,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# A build check's two words. landed, watch and stalled are a bet's status, set only by did-it-land.
+# A build check's words. landed, watch and stalled are a bet's status, set only by did-it-land.
 MEETS = "meets target"
 BELOW = "below target"
+# The point estimate meets the target but the 95% interval reaches under it: 24 of 30 is not a precise 80%.
+NOISE = "not confirmed: inside noise"
 # The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
 EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
 # A judge score at or above this bar is a pass, when a row carries `score` instead of `passed`.
@@ -109,7 +111,7 @@ REQUIRED = ("kind", "id", "version", "run_at")
 COLUMNS = (*REQUIRED, "split", "passed", "score", "succeeded", "human_stepped_in", "cost_usd", "input", "output", "note")
 
 
-def wilson(part: int, whole: int, z: float = 1.96) -> tuple[float, float]:
+def wilson(part: float, whole: int, z: float = 1.96) -> tuple[float, float]:
     """95% Wilson score interval for a rate, in percent. Honest at small n and near 0 or 100, unlike the normal one."""
     if not whole:
         return (0.0, 0.0)
@@ -117,6 +119,50 @@ def wilson(part: int, whole: int, z: float = 1.96) -> tuple[float, float]:
     centre = (p + z * z / (2 * whole)) / (1 + z * z / whole)
     half = z * math.sqrt(p * (1 - p) / whole + z * z / (4 * whole * whole)) / (1 + z * z / whole)
     return (round(100 * max(0.0, centre - half), 1), round(100 * min(1.0, centre + half), 1))
+
+
+def clears(ci: tuple[float, float] | list[float] | None, bar: float, higher_is_better: bool = True) -> bool:
+    """True when the whole 95% interval sits on the healthy side of the bar, so the reading is not noise."""
+    if not ci:
+        return False
+    return ci[0] >= bar if higher_is_better else ci[1] <= bar
+
+
+def cases_to_clear(rate: float, bar: float, higher_is_better: bool = True, limit: int = 1_000_000) -> int | None:
+    """The fewest cases at this same rate whose 95% interval would clear the bar, or None when no count can.
+
+    A rate exactly at the bar never clears it: the interval always reaches past the point estimate on both sides.
+    """
+    if (rate <= bar) if higher_is_better else (rate >= bar):
+        return None
+
+    def ok(n: int) -> bool:
+        return clears(wilson(rate / 100 * n, n), bar, higher_is_better)
+
+    lo, hi = 1, 1
+    while not ok(hi):
+        if hi >= limit:
+            return None
+        lo, hi = hi + 1, min(hi * 2, limit)
+    while lo < hi:  # the lower bound rises with n at a fixed rate, so the first n that clears is found by halving
+        mid = (lo + hi) // 2
+        if ok(mid):
+            hi = mid
+        else:
+            lo = mid + 1
+    return hi
+
+
+def noise_reason(what: str, part: int, whole: int, rate: float, ci: tuple | list, bar: float, higher_is_better: bool = True, noun: str = "target") -> str:
+    """Why a rate that meets the bar is not confirmed: its 95% interval, and the case count that would settle it."""
+    side = "under" if higher_is_better else "over"
+    text = f"{what} {rate:g}% meets the {bar:g}% {noun} only as a point estimate: {part} of {whole} has a 95% interval of "
+    text += f"{ci[0]:g}% to {ci[1]:g}%, which reaches {side} it"
+    need = cases_to_clear(rate, bar, higher_is_better)
+    if need is None:
+        way = "above" if higher_is_better else "below"
+        return text + f"; a rate exactly at the {noun} never clears it, however many cases, so it needs a rate {way} {bar:g}%"
+    return text + f"; at the same rate, {need} cases would clear it"
 
 
 def parse_map(pairs: list[str] | None) -> dict[str, str]:

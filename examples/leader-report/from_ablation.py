@@ -22,12 +22,16 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 11):  # checked first, before anything is read or written
+    sys.exit("eval-kit needs Python 3.11 or later; try python3.12")
+
 import argparse
 import csv
 import json
 import re
 import subprocess  # noqa: S404  (git, read only, with fixed arguments)
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]

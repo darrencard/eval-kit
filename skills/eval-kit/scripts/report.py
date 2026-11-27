@@ -19,10 +19,14 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 11):  # checked first, before anything is read or written
+    sys.exit("eval-kit needs Python 3.11 or later; try python3.12")
+
 import argparse
 import csv
 import json
-import sys
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -34,7 +38,22 @@ import clusters  # noqa: E402
 import holdout  # noqa: E402
 import landing  # noqa: E402
 import render_html  # noqa: E402
-from evalcore import BELOW, EVALS_COLUMNS, MEETS, EvalError, Ledger, Trace, load_traces, parse_map, pct, versions, wilson  # noqa: E402
+from evalcore import (  # noqa: E402
+    BELOW,
+    EVALS_COLUMNS,
+    MEETS,
+    NOISE,
+    EvalError,
+    Ledger,
+    Trace,
+    clears,
+    load_traces,
+    noise_reason,
+    parse_map,
+    pct,
+    versions,
+    wilson,
+)
 
 # A held-out rate this many points under target blocks the CI gate, not only reads below target.
 STALL_MARGIN = 10.0
@@ -82,9 +101,12 @@ def decide_status(
 ) -> tuple[str | None, bool, list[str]]:
     """(status, blocking, reasons) for the latest version.
 
-    status is "meets target", "below target", or None when the run cannot confirm either (no target, an unsealed
-    holdout, an uncalibrated judge, development far ahead of holdout, or a new held-out failure). These are build
-    checks, not a bet's status: landed, watch and stalled are did-it-land's words and never print here.
+    status is "meets target" only when the 95% interval's lower bound clears the target, so 24 of 30 never reads
+    as a precise 80%. When the rate meets the target and the interval reaches under it, status is "not confirmed:
+    inside noise", with the interval and the case count that would settle it. status is "below target" when the
+    rate is under the target, and None when the run cannot confirm anything (no target, an unsealed holdout, an
+    uncalibrated judge, development far ahead of holdout, or a new held-out failure). These are build checks, not a
+    bet's status: landed, watch and stalled are did-it-land's words and never print here.
     blocking is True for what a CI gate should stop: a new held-out failure, or a rate far under target.
     """
     reasons: list[str] = []
@@ -112,9 +134,16 @@ def decide_status(
         reasons.append(f"development runs {gap:g} points ahead of holdout, which reads as tuning to the practice cases")
     if below:
         return BELOW, False, reasons
-    if reasons:
+    noisy = not clears(latest["pass_ci"], target)
+    if noisy:
+        reasons.append(noise_reason("held-out pass rate", latest["passed"], latest["cases"], rate, latest["pass_ci"], target))
+    if len(reasons) > 1 or (reasons and not noisy):
         return None, False, reasons
-    return MEETS, False, [f"held-out pass rate {rate:g}% meets the {target:g}% target on a sealed holdout"]
+    if noisy:
+        return NOISE, False, reasons
+    lo = latest["pass_ci"][0]
+    why = f"held-out pass rate {rate:g}% meets the {target:g}% target on a sealed holdout, and its 95% interval does not reach under it (low end {lo:g}%)"
+    return MEETS, False, [why]
 
 
 def status_text(status: str | None) -> str:
@@ -271,8 +300,6 @@ def markdown(report: dict, evals: dict | None = None) -> str:
     if latest["dev_pass_rate"] is not None:
         line += f", against {latest['dev_pass_rate']:g}% on development [{led['dev_pass_rate']}]"
     out.append(line + ".")
-    if report["target"] is not None and lo < report["target"] <= latest["pass_rate"]:
-        out.append(f"The interval's low end, {lo:g}%, is under the {report['target']:g}% target. More held-out cases would settle it.")
     if latest["autonomy_rate"] is not None:
         out.append(
             f"It finished {latest['tasks_unassisted']} of {latest['tasks']} production tasks with no person stepping in "

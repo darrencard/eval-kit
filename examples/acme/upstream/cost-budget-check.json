@@ -2,7 +2,7 @@
   "schema": "landing-loop/1",
   "bet": "quote-drafting",
   "brief": {
-    "path": "examples/acme/briefs/quote-drafting.md",
+    "path": "briefs/quote-drafting.md",
     "sha256": "decbe39590cc57b3d47125722a8d43e445d33c8f2f525c00277b94b7937dc95f"
   },
   "cost": {

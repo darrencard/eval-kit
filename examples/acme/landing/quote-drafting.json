@@ -2,7 +2,7 @@
   "schema": "landing-loop/1",
   "bet": "quote-drafting",
   "brief": {
-    "path": "examples/acme/briefs/quote-drafting.md",
+    "path": "briefs/quote-drafting.md",
     "sha256": "decbe39590cc57b3d47125722a8d43e445d33c8f2f525c00277b94b7937dc95f"
   },
   "cost": {
@@ -283,10 +283,10 @@
     "feature": "Quote drafting",
     "version": "v1.4",
     "as_of": "2026-11-15",
-    "status": "meets target",
+    "status": "not confirmed: inside noise",
     "blocking": false,
     "reasons": [
-      "held-out pass rate 80% meets the 80% target on a sealed holdout"
+      "held-out pass rate 80% meets the 80% target only as a point estimate: 24 of 30 has a 95% interval of 62.7% to 90.5%, which reaches under it; a rate exactly at the target never clears it, however many cases, so it needs a rate above 80%"
     ],
     "against_brief": {
       "metric": "Quote draft acceptance rate",
