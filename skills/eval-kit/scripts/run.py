@@ -11,7 +11,7 @@ written to the `evals` key of landing/<bet>.json, the Landing Loop record, and n
 Usage:
   python3 scripts/run.py TRACES.csv --feature "Quote drafting" --target 85 [--out run] [--map SCHEMA=YOURS ...]
       [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on below-target|blocking] [--illustrative]
-      [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]]
+      [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]] [--owner ROLE]
 """
 
 from __future__ import annotations
@@ -54,6 +54,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--bet", help="the bet's slug; with --brief, writes the evals key of LANDING/<bet>.json")
     p.add_argument("--landing", default="landing", help="the loop record folder (default landing)")
     p.add_argument("--as-of", help="YYYY-MM-DD for the record; defaults to the latest run date")
+    p.add_argument("--owner", help="who carries out the next step, a role (the brief's 'Decides the next step' decides it)")
     args = p.parse_args(argv)
     if args.bet and not args.brief:
         raise EvalError("--bet writes the loop record, which is judged against a brief. Pass --brief too.")
@@ -102,7 +103,7 @@ def main(argv: list[str] | None = None) -> None:
     if brief:
         as_of = args.as_of or built["versions"][-1]["run_at"]
         evals = landing.evals_key(built, brief, as_of)
-    report.write(built, out, evals, brief)
+    report.write(built, out, evals, brief, args.owner)
     if evals and args.bet:
         path = landing.write_record(Path(args.landing), args.bet, Path(args.brief), evals)
         print(f"run: wrote the evals key of {path}; every other key is as it was.")

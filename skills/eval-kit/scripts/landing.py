@@ -41,7 +41,7 @@ from evalcore import BELOW, EVALS_COLUMNS, MEETS, NOISE, EvalError, clears, nois
 
 SCHEMA = "landing-loop/1"
 SKILL = "eval-kit"
-VERSION = "0.3.4"
+VERSION = "0.3.5"
 BET = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
 # Which eval figure a brief's metric names. Matched on the metric's words, never guessed beyond these.
 FIGURES = (
@@ -108,7 +108,7 @@ def judge(brief: landing_brief.Brief, report: dict, as_of: str) -> dict[str, Any
 
 def combined(own: str | None, against: dict[str, Any]) -> str | None:
     """below target if either reads below; meets target only when both clear their bar outside the noise; not
-    confirmed: inside noise when the only thing missing is an interval that clears the bar; else None."""
+    confirmed: too close to call when the only thing missing is an interval that clears the bar; else None."""
     theirs = against["status"] if against["judged"] else MEETS
     if BELOW in (own, theirs):
         return BELOW

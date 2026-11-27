@@ -279,11 +279,11 @@
   },
   "evals": {
     "skill": "eval-kit",
-    "skill_version": "0.3.4",
+    "skill_version": "0.3.5",
     "feature": "Quote drafting",
     "version": "v1.4",
     "as_of": "2026-11-15",
-    "status": "not confirmed: inside noise",
+    "status": "not confirmed: too close to call",
     "blocking": false,
     "reasons": [
       "held-out pass rate 80% meets the 80% target only as a point estimate: 24 of 30 has a 95% interval of 62.7% to 90.5%, which reaches under it; a rate exactly at the target never clears it, however many cases, so it needs a rate above 80%"

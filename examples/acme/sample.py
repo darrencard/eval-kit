@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> None:
                 "--judge-scores", "evals/fixtures/acme_judge_scores.csv",
                 "--brief", str(HERE / "briefs" / f"{BET}.md"),
                 "--bet", BET,
+                "--owner", "Tech lead, Quoting squad",
                 "--landing", str(work / "landing"),
                 "--out", str(work / "run"),
             ]

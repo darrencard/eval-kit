@@ -118,9 +118,9 @@ class AgainstBrief(Temp):
     def test_pass_rate_read_against_the_briefs_bar(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF), "2026-11-26")
         a = key["against_brief"]
-        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "not confirmed: inside noise", 80.0, 70.0))
+        self.assertEqual((a["judged"], a["status"], a["value"], a["prior"]), ("pass_rate", "not confirmed: too close to call", 80.0, 70.0))
         self.assertIn("62.7%", a["note"])
-        self.assertEqual(key["status"], "not confirmed: inside noise")
+        self.assertEqual(key["status"], "not confirmed: too close to call")
         self.assertFalse(key["blocking"])
 
     def test_autonomy_below_the_bar_reads_below_target(self) -> None:
@@ -134,21 +134,21 @@ class AgainstBrief(Temp):
         for brief in (BRIEF, BRIEF_AUTONOMY, BRIEF_PRODUCT):
             key = landing.evals_key(build(), landing.read_brief(brief), "2026-11-26")
             for status in (key["status"], key["against_brief"]["status"]):
-                self.assertIn(status, {"meets target", "below target", "not confirmed: inside noise", None})
+                self.assertIn(status, {"meets target", "below target", "not confirmed: too close to call", None})
 
     def test_combined_status(self) -> None:
         judged = {"judged": "pass_rate"}
         cases = [
             (("meets target", "meets target"), "meets target"),
-            (("meets target", "not confirmed: inside noise"), "not confirmed: inside noise"),
-            (("not confirmed: inside noise", "meets target"), "not confirmed: inside noise"),
-            (("not confirmed: inside noise", "below target"), "below target"),
+            (("meets target", "not confirmed: too close to call"), "not confirmed: too close to call"),
+            (("not confirmed: too close to call", "meets target"), "not confirmed: too close to call"),
+            (("not confirmed: too close to call", "below target"), "below target"),
             ((None, "meets target"), None),
         ]
         for (own, theirs), want in cases:
             with self.subTest(own=own, theirs=theirs):
                 self.assertEqual(landing.combined(own, {**judged, "status": theirs}), want)
-        self.assertEqual(landing.combined("not confirmed: inside noise", {"judged": None, "status": None}), "not confirmed: inside noise")
+        self.assertEqual(landing.combined("not confirmed: too close to call", {"judged": None, "status": None}), "not confirmed: too close to call")
 
     def test_a_passed_date_is_named(self) -> None:
         key = landing.evals_key(build(), landing.read_brief(BRIEF_AUTONOMY), "2027-01-15")
@@ -254,9 +254,9 @@ class LoopRecord(Temp):
         with redirect_stdout(io.StringIO()):
             run.main(args)
         rec = json.loads((folder / "quote-drafting-assistant.json").read_text(encoding="utf-8"))
-        self.assertEqual(rec["evals"]["status"], "not confirmed: inside noise")
+        self.assertEqual(rec["evals"]["status"], "not confirmed: too close to call")
         self.assertEqual(rec["evals"]["as_of"], "2026-11-15")
-        self.assertIn("Against the landing brief: **not confirmed: inside noise**", (out / "report.md").read_text(encoding="utf-8"))
+        self.assertIn("Against the landing brief: **not confirmed: too close to call**", (out / "report.md").read_text(encoding="utf-8"))
         self.assertIn("The plan's number", (out / "report.html").read_text(encoding="utf-8"))
 
     def run_loop(self, record: dict | None) -> dict:
@@ -336,7 +336,8 @@ class Page(Temp):
             self.assertIn(rule, css, "the page's own rules come after the template's, so they win")
         self.assertNotIn('class="ok"', text, "the template's healthy-side band is green, a status colour")
         brass = [r for r in re.findall(r"[^}]*var\(--brass[^}]*}", css)]
-        self.assertTrue(brass and all(r.lstrip().startswith((".next", "}.next")) for r in brass), "brass is only the person who decides the next step")
+        # Brass is a person's call only: the next step's owner and decider, and svgkit's person_call (.sc-o, .sc-pm).
+        self.assertTrue(brass and all(r.lstrip("}\n ").startswith((".next", ".scg .sc-o", ".sc-pm")) for r in brass), brass)
 
     def test_the_page_follows_the_sample_anatomy(self) -> None:
         text = self.page()
@@ -345,7 +346,7 @@ class Page(Temp):
             'class="sk-hdr"',
             "<h1>Quote drafting is too close to call.</h1>",
             'class="status"',
-            'class="sk-wide"',
+            '<div class="sc scg"',
             "What to do next",
             'class="cols"',
             "For your engineers",
@@ -353,23 +354,77 @@ class Page(Temp):
         at = [body.index(x) for x in order]
         self.assertEqual(at, sorted(at))
         self.assertIn('<span class="o">Head of Product, Acme</span>', render_html.render(build(), None, landing.read_brief(BRIEF)))
+        owned = render_html.render(build(), None, landing.read_brief(BRIEF), "Tech lead, Acme")
+        self.assertIn('<span class="who"><span class="w">Tech lead, Acme</span><span class="o">Head of Product, Acme</span>', owned)
         self.assertIn("<details><summary>For your engineers</summary>", body)
 
     def test_the_visual_draws_only_figures_the_page_prints(self) -> None:
         text = self.page()
-        self.assertEqual(len(svgkit.visuals_in(text)), 2, "the wide and the tall variant")
         self.assertEqual(svgkit.unprinted(text), [])
-        self.assertIn("62.7%", svgkit.numbers_in(svgkit.visuals_in(text)[0]))
+        frame = svgkit.frames_in(text)[0]
+        self.assertIn('<span class="sc-l"><b>21 of 30</b> · 70%</span>', frame)
+        self.assertIn('<span class="sc-l"><b>24 of 30</b> · 80%</span>', frame)
+        self.assertIn('<span class="sc-k"><i class="k-tg"></i>target 80%</span>', frame, "the target prints once, in the legend")
 
     def test_the_visual_states_the_answer(self) -> None:
         r = build()
-        for svg in svgkit.visuals_in(self.page()):
-            self.assertIn('role="img"', svg)
-            label = re.search(r'aria-label="([^"]+)"', svg).group(1)
-            self.assertIn("passes 24 of 30 test cases kept back, 80%", label)
-            self.assertIn("62.7% to 90.5%", label)
-            self.assertTrue(label.endswith("against a 80% target, so it is not confirmed: too close to call."), label)
-        self.assertIn("with no target set.", render_html.range_chart(r["versions"], None, None, "wide"))
+        labels = re.findall(r'role="img" aria-label="([^"]+)"', self.page())
+        self.assertEqual(len(labels), 1)
+        self.assertIn("passes 24 of 30 test cases kept back, 80%", labels[0])
+        self.assertIn("62.7% to 90.5%", labels[0])
+        self.assertTrue(labels[0].endswith("against a 80% target, so it is not confirmed: too close to call."), labels[0])
+        self.assertIn("with no target set.", render_html.scorecard(r["versions"], None, None, True))
+
+    # The scorecard grammar (landing-loop tools/SCORECARD-ROLLOUT.md, svgkit 1.2.0)
+
+    def css(self, text: str) -> str:
+        return text.split("<style>", 1)[1].split("</style>", 1)[0]
+
+    def test_one_frame_one_row_per_version_with_its_check_word(self) -> None:
+        r = build()
+        frames = svgkit.frames_in(self.page())
+        self.assertEqual(len(frames), 1)
+        self.assertEqual(frames[0].count('<div class="sc-r">'), len(r["versions"]))
+        self.assertEqual(re.findall(r'<span class="sc-n">([^<]+)</span>', frames[0]), ["Version v1.3, 2026-10-15", "Version v1.4, 2026-11-15"])
+        self.assertIn('<span class="sc-w ink">BELOW TARGET</span>', frames[0])
+        self.assertIn('<span class="sc-w">NOT CONFIRMED: TOO CLOSE TO CALL</span>', frames[0])
+
+    def test_no_text_inside_a_picture_and_no_scaled_picture(self) -> None:
+        text = self.page()
+        self.assertEqual(svgkit.svgs_with_text(text), [])
+        self.assertEqual(svgkit.scaled_svgs_in(text), [])
+
+    def test_labels_render_12px_and_names_14px(self) -> None:
+        css = self.css(self.page())
+        self.assertEqual(set(svgkit.font_sizes(css)), {"var(--sc-m)", "var(--sc-n)"})
+        self.assertIn("--sc-m:calc(12px / var(--sc-z))", css)
+        self.assertIn("--sc-n:calc(14px / var(--sc-z))", css)
+        self.assertIn(".scg{--sc-z:1;", css, "a sample page has no zoom")
+
+    def test_no_box_inside_the_frame_and_no_overlap(self) -> None:
+        text = self.page()
+        self.assertEqual(svgkit.boxes_in_frames(text, self.css(text)), [])
+        self.assertNotIn("position:absolute", svgkit.SCORECARD_CSS)
+        self.assertNotIn('class="chip"', text.split("For your engineers", 1)[0])
+        self.assertNotIn('class="panel"', text, "no card around the frame")
+
+    def test_no_legacy_svgkit_primitive_draws_on_the_page(self) -> None:
+        import warnings
+
+        self.assertEqual(svgkit.legacy_in(self.page()), [])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            self.page()
+
+    def test_no_status_colour_in_the_frame(self) -> None:
+        frame = svgkit.frames_in(self.page())[0]
+        self.assertNotIn('class="ac ', frame)
+        self.assertNotIn('class="st ', frame)
+
+    def test_one_scale_for_the_frame_so_every_target_tick_lines_up(self) -> None:
+        frame = svgkit.frames_in(self.page())[0]
+        ticks = set(re.findall(r'class="tg" x="([^"]+)"', frame))
+        self.assertEqual(len(ticks), 1, ticks)
 
     def test_public_copy_uses_plain_words(self) -> None:
         # The header prints the skill's plain name, "Eval kit"; the words below are checked in everything after it.
@@ -392,8 +447,6 @@ class Page(Temp):
             ".a{font:400 11px/16px var(--mono)}.b{font-size:11px}.c{font-size:13px}",
         )
         self.assertEqual(render_html.floor_fonts(before), after)
-        # The phone picture is 340 wide; on a 390px screen the panel gives it 356px, so its 11px labels never shrink.
-        self.assertIn("@media (max-width:440px){.panel{margin:0 -8px;padding:16px 8px 14px}}", text)
 
     def test_the_header_prints_the_plain_name_and_the_code_name_is_for_engineers(self) -> None:
         text = self.page()

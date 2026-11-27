@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.5, 2026-11-27
+
+- The picture is scorecard rows in the grammar of the /update outcome scorecard, drawn with svgkit 1.2.0 (vendored byte-identical, pinned at landing-loop 78784ef). One frame, one row per version: a range line with its pass rate on the test cases kept back as a dot and the target as a tick, on one scale for the frame (`frame_domain`, one unit, so the ticks line up); the figure `24 of 30 · 80%`; the check word as text. The target prints once, in the frame head. Geist Mono 12px for labels, figures and words, Geist 14px for names; no text inside any picture. The wide and phone SVG variants and the card around them are gone, and the check word under the heading is plain mono text, not a boxed chip.
+- One check word: the status that sat between meets target and below target is now `not confirmed: too close to call` everywhere, on the page, in the Markdown twin, in README and SKILL.md, and as the value the `evals` key stores. The page prints meets target, not "clears the target".
+- `--owner` names who carries out the next step; the brief's "Decides the next step" still decides it. The sample's next step is owned by the Tech lead, Quoting squad and decided by the Head of Product, Quoting squad.
+- `dist/` is no longer tracked; release assets carry the zips and their sums.
+- README and SKILL.md use plain words: project, target, the project file, and the landing brief defined once as a one-page plan. SKILL.md tells Claude to use the user's own word if they say bet. Keys, file names and flags are unchanged.
+- Tests: no text inside an SVG, no picture with a viewBox, every frame font size 12 or 14px, no box inside the frame, no legacy svgkit primitive (rendered with DeprecationWarning as an error), one frame with one row per version and its check word, each figure line printed exactly, one target tick x for the frame, the aria-label equal to the verdict, and the owner beside the decider.
+
 ## 0.3.4, 2026-11-27
 
 - The HTML page follows the Landing Loop sample anatomy: the shared header (mark, DACARD, skill, date, version, blue Illustrative tag), the verdict as the heading ("Quote drafting is too close to call."), the check word, the signature picture, one next step with the brief's decider in brass and a due date, the figures and the common ways it fails in two columns, then folds for the version history and "For your engineers" (the stored status words, reasons, warnings, clusters, ledger, record key and CI gate).

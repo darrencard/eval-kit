@@ -1,6 +1,6 @@
 # Eval kit: honest evals for one feature
 
-A free Claude skill that turns your AI feature's traces into a pass rate and an autonomy rate you can defend, judged against the feature's landing brief.
+A free Claude skill that turns your AI feature's traces into a pass rate and an autonomy rate you can defend, judged against the feature's landing brief (a one-page plan: what good looks like, by when, at what cost).
 
 **Why it matters:** an eval you tuned against tells you the prompt memorised its practice cases. This kit seals a holdout, tests the judge with cases built to be rejected, and refuses the claims the data can't carry.
 
@@ -32,7 +32,7 @@ The first run seals the holdout and writes blind calibration cases for your judg
 
 ## Sample
 
-[examples/acme/eval-kit.html](examples/acme/eval-kit.html) is one bet, Acme's quote drafting, run end to end: the canonical brief from the landing-loop repo, quote-drafting traces and a sealed holdout. Every figure is illustrative. It starts from the record cost-budget-check wrote for the same bet ([examples/acme/upstream](examples/acme/upstream)), so the cost tile cites that figure, and writes only the `evals` key of [examples/acme/landing/quote-drafting.json](examples/acme/landing/quote-drafting.json) and a Markdown twin. Regenerate it from the repo root:
+[examples/acme/eval-kit.html](examples/acme/eval-kit.html) is one project, Acme's quote drafting, run end to end: the canonical brief from the landing-loop repo, quote-drafting traces and a sealed holdout. Every figure is illustrative. It starts from the project file cost-budget-check wrote for the same project ([examples/acme/upstream](examples/acme/upstream)), so the cost tile cites that figure, and writes only the `evals` key of [examples/acme/landing/quote-drafting.json](examples/acme/landing/quote-drafting.json) and a Markdown twin. Regenerate it from the repo root:
 
 ```bash
 python3 examples/acme/sample.py
@@ -51,15 +51,15 @@ Same inputs, same bytes: a test checks the command reproduces the committed file
 | Failure clusters | Groups failures by shared terms, with no categories set in advance, and 2 example traces each | Error analysis starts from what actually went wrong |
 | Autonomy with its pair | Tasks finished without a person, only beside the held-out pass rate; the report names it when quality fell meanwhile | Autonomy can't rise unseen while quality falls |
 | CI gate | `--fail-on blocking` or `below-target` exits 2 after writing the report | A regression stops the merge, with the reason to read |
-| Landing Loop | Reads pass rate or autonomy against the landing brief's bar, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, eleven skills (the Leader Report among them) reading the same figures |
+| Landing Loop | Reads pass rate or autonomy against the landing brief's target, and writes only the `evals` key of the project file, `landing/<bet>.json` | One brief, one project file, eleven skills (the Leader Report among them) reading the same figures |
 | Live data | Reads OpenAI Evals, Langfuse and PostHog LLM exports; CSV as the fallback | No retyping traces into a spreadsheet |
 | One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
 | One owner for cost | Computes no cost of its own; cites cost per task from cost-budget-check's `cost` key, or says "cost not checked: run cost-budget-check" | One cost figure across the loop, never two that disagree |
 | Leader Report source | Writes `evals.csv` in the Product & Technology Leader Report's columns | One run feeds your board update |
-| Build check | meets target (only when the 95% interval's low end clears the target), not confirmed: inside noise (with the interval and the cases that would settle it), or below target, with every reason. landed, watch and stalled are a bet's status and only did-it-land sets them | A build check never reads as a bet's result |
+| Build check | meets target (only when the 95% interval's low end clears the target), not confirmed: too close to call (with the interval and the cases that would settle it), or below target, with every reason. landed, watch and stalled are a project's status and only did-it-land sets them | A build check never reads as a bet's result |
 
 The fixture is Acme, an invented invoicing company for trades businesses, and its quote-drafting assistant. Every figure it produces is illustrative.
 
-Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.3.4. The live-data readers are tested on documented response shapes, not yet on a live account.
+Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.3.5. The live-data readers are tested on documented response shapes, not yet on a live account.
 
 Claude and Claude Code are trademarks of Anthropic, PBC. These skills are independent and not affiliated with or endorsed by Anthropic.

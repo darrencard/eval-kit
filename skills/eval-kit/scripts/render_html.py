@@ -6,11 +6,14 @@ The page uses the report's whole stylesheet, taken from its template (vendor/tem
 at the commit in vendor/VENDORED.json), and draws its picture with svgkit (vendor/svgkit.py, vendored byte-identical
 from landing-loop). Only a few rules for this page's layout are added.
 
-It reads top down for someone who has never run an eval: the shared header, the verdict as the heading, the likely
-range of the pass rate against the target, then one thing to do next, owned by the person the landing brief names.
+It reads top down for someone who has never run an eval: the shared header, the verdict as the heading, then one
+scorecard frame in the grammar of the /update outcome scorecard (svgkit 1.2.0): a row per version with its pass rate on
+the test cases kept back as a dot against the target tick, one scale for the frame, `24 of 30 · 80%` and the check
+word. Geist Mono 12px for labels, figures and words, Geist 14px for names, no text inside any picture. Then one thing
+to do next: who owns it (--owner) and who decides, the person the landing brief names.
 The figures follow in two columns. Version history and everything technical (status words as the record stores
 them, reasons, ledger, record key) sit in folds. Public copy uses plain words: quality test, test cases kept back,
-the likely range, too close to call.
+the likely range, not confirmed: too close to call.
 
 Green, grey-white and red mean a project's landed, watch and stalled only, which did-it-land sets, so this page uses
 none of them: the check prints as plain words in ink. Brass is the person who decides the next step. Every piece of
@@ -44,16 +47,14 @@ main.solo{margin-left:0}
 .solo h1{font-size:clamp(34px,4.6vw,60px);line-height:1;letter-spacing:-.04em;max-width:20ch;margin-bottom:20px}
 .solo .lede{margin-bottom:24px}
 .solo h2{margin-bottom:16px}
-.status{display:inline-block;font:400 11px/16px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t1);border:1px solid var(--line3);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.status{font:400 12px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t1)}
 .verdict{margin:0 0 20px}
-.panel{border:1px solid var(--line);border-radius:12px;background:var(--s1);padding:24px 28px 20px}
-@media (min-width:1100px){.panel .sk{display:grid;grid-template-columns:720px minmax(0,1fr);gap:16px 40px;align-items:center}.panel .sk figcaption{margin-top:0;flex-direction:column;align-items:flex-start}}
 .next{margin-top:28px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px 32px;align-items:baseline;border:1px solid var(--brass);border-radius:12px;padding:20px 24px;background:var(--brass-bg)}
 .next>b{font:400 11px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
 .next p{margin:0;font-size:16px;line-height:1.5;color:var(--t1)}
 .next .who{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:10px;font:400 11.5px/16px var(--mono);color:var(--brass)}
 .next .who span::before{font-size:11px;letter-spacing:.1em;color:var(--t3);margin-right:8px}
-.next .who .o::before{content:"DECIDES"}.next .who .d::before{content:"DUE"}
+.next .who .w::before{content:"OWNER"}.next .who .o::before{content:"DECIDES"}.next .who .d::before{content:"DUE"}
 .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 56px;align-items:start}
 .cols h3{margin-bottom:8px}
 .figs{margin:0;display:grid}
@@ -75,23 +76,21 @@ main.solo{margin-left:0}
 ::selection{background:var(--t1);color:var(--bg)}
 :focus-visible{outline-color:var(--t1)}
 .foot{max-width:1120px;margin:0 auto;padding:28px 40px 64px;color:var(--t3);font-size:12px}
-@media (max-width:980px){.foot{padding:24px 16px 48px}.solo .slide.cover{padding-top:24px}.cols,.next{grid-template-columns:1fr}.panel{padding:18px 16px 16px}
+@media (max-width:980px){.foot{padding:24px 16px 48px}.solo .slide.cover{padding-top:24px}.cols,.next{grid-template-columns:1fr}
 .stack table,.stack tbody,.stack tr,.stack td{display:block}.stack tr:first-child{display:none}.stack tr{padding:10px 16px;border-bottom:1px solid var(--line)}
 .stack td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}.stack td.num{text-align:left;white-space:normal}
 .stack td::before{content:attr(data-l);font:400 11px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
 @media (max-width:560px){.figs>div{grid-template-columns:1fr;gap:0}}
-@media (max-width:440px){.panel{margin:0 -8px;padding:16px 8px 14px}}
 """
 
 # The check words as the record stores them, and as the page prints them.
-PLAIN = {MEETS: "clears the target", BELOW: "below target", NOISE: "not confirmed: too close to call", None: "not confirmed"}
+PLAIN = {MEETS: MEETS, BELOW: BELOW, NOISE: NOISE, None: "not confirmed"}
 WORDS = (
     (r"\bheld-out cases\b", "test cases kept back"),
     (r"\bheld-out case\(s\)", "test case(s) kept back"),
     (r"\bheld-out\b", "kept-back"),
     (r"\bHeld-out\b", "Kept-back"),
     (r"\b95% interval\b", "likely range"),
-    (r"\binside noise\b", "too close to call"),
     (r"\bchallenger\b", "the new version"),
     (r"\bchampion\b", "the current version"),
 )
@@ -151,8 +150,8 @@ class Table:
         return f'<div class="tablewrap stack"><table>{head}{"".join(self.rows)}</table></div>'
 
 
-def status_chip(status: str | None) -> str:
-    """The check's words in ink, with no status colour: the colours belong to did-it-land."""
+def check_text(status: str | None) -> str:
+    """The check's words as plain mono text in ink, never a boxed chip and never a status colour: the colours belong to did-it-land."""
     return f'<span class="status">{esc(PLAIN.get(status, status))}</span>'
 
 
@@ -168,58 +167,50 @@ def pct(v: float) -> str:
     return f"{v:g}%"
 
 
-# The signature picture
+# The scorecard
 
 
-def range_chart(rows: list[dict], target: float | None, status: str | None, variant: str) -> str:
-    """Each version's pass rate on the test cases kept back, as its likely range with the rate on it, against the
-    target. The newest is ink, earlier ones grey. The part of the newest range short of the target is hatched."""
-    wide = variant == "wide"
-    width = sk.WIDE if wide else sk.TALL
-    step = 64 if wide else 70
-    top = 40
-    height = top + step * len(rows) + (6 if wide else 0)
-    x0, x1 = (128.0, 566.0) if wide else (50.0, 290.0)
-    lows = [r["pass_ci"][0] for r in rows] + ([target] if target is not None else [])
-    highs = [r["pass_ci"][1] for r in rows] + ([target] if target is not None else [])
-    lo, hi = max(0.0, min(lows) - 8), min(100.0, max(highs) + 8)
-    x = sk.scale((lo, hi), (x0, x1))
-    hid = f"sk-ek-hatch-{variant}"
-    parts = [sk.defs(sk.hatch_pattern(hid))]
+def version_word(r: dict, latest: dict, target: float | None, status: str | None) -> str:
+    """The check word for one version's row. The newest prints the run's own status, as the record stores it. An
+    earlier version reads below target when its rate is under the target (the same first rule decide_status
+    applies); otherwise this run confirms nothing about it, and it says so."""
+    if r is latest:
+        word = PLAIN.get(status, status)
+        return sk.check_word(word.upper(), ink=status == BELOW)
+    if target is not None and r["pass_rate"] < target:
+        return sk.check_word(BELOW.upper(), ink=True)
+    return sk.check_word("not confirmed")
+
+
+def answer(latest: dict, target: float | None, status: str | None) -> str:
+    """The aria-label: the verdict in one sentence."""
+    lo, hi = latest["pass_ci"]
+    text = f"{latest['version']} passes {latest['passed']} of {latest['cases']} test cases kept back, {pct(latest['pass_rate'])}; the likely range is {pct(lo)} to {pct(hi)}"
+    return text + (f" against a {pct(target)} target, so it is {PLAIN.get(status, status)}." if target is not None else ", with no target set.")
+
+
+def scorecard(rows: list[dict], target: float | None, status: str | None, illustrative: bool) -> str:
+    """One row per version: name | range line (the pass rate as a dot, the target as a tick) | `24 of 30 · 80%` |
+    check word. Pass rates share one unit, so the frame has one scale and every target tick lines up."""
     latest = rows[-1]
-    for i, r in enumerate(rows):
-        newest = r is latest
-        tone = sk.INK if newest else sk.MUTED
-        ry = top + step * i + (step / 2 if wide else 46)
-        a, b = r["pass_ci"]
-        parts.append(sk.range_bar(x(a), x(b), ry, height=12, tone=sk.LINE3 if newest else sk.LINE2))
-        if newest and target is not None and a < target:
-            cut = min(b, target)
-            parts.append(sk.hatched(x(a), ry - 6, x(cut) - x(a), 12, pattern_id=hid))
-        parts.append(sk.point(x(r["pass_rate"]), ry, r=6 if newest else 5, fill=tone))
-        name = f"{r['version']} · {r['run_at']}"
-        count = f"{r['passed']} of {r['cases']} pass"
-        if wide:
-            parts.append(sk.label(0, ry - 3, r["version"], tone=sk.INK if newest else sk.INK2))
-            parts.append(sk.label(0, ry + 13, r["run_at"]))
-            parts.append(sk.label(x(a) - 8, ry + 4, pct(a), anchor="end"))
-            parts.append(sk.label(x(b) + 8, ry + 4, pct(b)))
-            parts.append(sk.value(600, ry + 2, pct(r["pass_rate"]), size=22 if newest else 18, tone=tone))
-            parts.append(sk.label(600, ry + 20, count))
-        else:
-            parts.append(sk.label(0, ry - 22, name, tone=sk.INK if newest else sk.INK2))
-            parts.append(sk.value(width, ry - 20, pct(r["pass_rate"]), anchor="end", size=18, tone=tone))
-            parts.append(sk.label(x(a) - 6, ry + 4, pct(a), anchor="end"))
-            parts.append(sk.label(x(b) + 6, ry + 4, pct(b)))
-    if target is not None:
-        tx = x(target)
-        parts.append(sk.target_tick(tx, top - 10, height - 4))
-        parts.append(sk.label(tx, top - 18, f"Target {pct(target)}", anchor="middle", tone=sk.INK2))
-    n = latest
-    verdict = PLAIN.get(status, status)
-    aria = f"{n['version']} passes {n['passed']} of {n['cases']} test cases kept back, {pct(n['pass_rate'])}; the likely range is {pct(n['pass_ci'][0])} to {pct(n['pass_ci'][1])}"
-    aria += f" against a {pct(target)} target, so it is {verdict}." if target is not None else ", with no target set."
-    return sk.frame("".join(parts), label=aria, height=height, width=width, variant=variant)
+    domain = sk.frame_domain([(None, r["pass_rate"], target if target is not None else r["pass_rate"]) for r in rows], relative=False)
+    out = []
+    for r in rows:
+        picture = sk.range_line(actual=r["pass_rate"], target=target, domain=domain)
+        figure = sk.figure_line(f"{r['passed']} of {r['cases']}", tail=pct(r["pass_rate"]))
+        out.append(sk.sc_row(f"Version {r['version']}, {r['run_at']}", picture=picture, figure=figure, word=version_word(r, latest, target, status)))
+    key = sk.legend("target", f"target {pct(target)}") if target is not None else ""
+    return sk.sc_frame(
+        out,
+        label=answer(latest, target, status),
+        title="Test cases kept back",
+        head=["Version", "", "Passed · rate", "Check"],
+        legend=key,
+        caption="One row per version, on one scale: the dot is the share of test cases kept back that it passes"
+        + (", the tick the target." if target is not None else ".")
+        + " The likely range of the newest rate is in the figures below.",
+        illustrative=illustrative,
+    )
 
 
 # The words
@@ -307,7 +298,7 @@ def figures(report: dict, evals: dict | None, latest: dict) -> str:
             rows.append(
                 (
                     "The plan's number",
-                    f"{esc(plain(a['metric']))} is {esc(v)} against a target of {esc(a['bar'])} by {esc(a['by'])}: {status_chip(a['status'])}",
+                    f"{esc(plain(a['metric']))} is {esc(v)} against a target of {esc(a['bar'])} by {esc(a['by'])}: {check_text(a['status'])}",
                 )
             )
         else:
@@ -337,7 +328,8 @@ def marker(report: dict) -> str:
     return f"<p>The AI marker agreed with a person on {c['agreement']:g}% of {c['judged']} known answers. Marked as passing when a person said fail: {esc(fa)}.</p>"
 
 
-def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
+def render(report: dict, evals: dict | None = None, brief: Any = None, owner: str | None = None) -> str:
+    """The page. owner is who carries out the next step (--owner); the brief's "Decides the next step" decides it."""
     rows = report["versions"]
     latest = rows[-1]
     status = evals["status"] if evals else report["status"]
@@ -346,23 +338,17 @@ def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
     as_of = evals["as_of"] if evals else latest["run_at"]
 
     header = sk.page_header("Eval kit", date=as_of, version=f"v{VERSION}", illustrative=report["illustrative"])
-    pic = sk.figure(
-        range_chart(rows, target, status, "wide"),
-        range_chart(rows, target, status, "tall"),
-        caption="Each bar is the likely range of a version's pass rate on the test cases kept back; the dot is the rate it scored. "
-        "The dashed line is the target. Hatched: the part of the newest range that falls short of it.",
-        illustrative=report["illustrative"],
-    )
-    owner = getattr(brief, "decides", None)
-    who = f'<span class="o">{esc(owner)}</span>' if owner else ""
+    pic = scorecard(rows, target, status, report["illustrative"])
+    decides = getattr(brief, "decides", None)
+    who = (f'<span class="w">{esc(owner)}</span>' if owner else "") + (f'<span class="o">{esc(decides)}</span>' if decides else "")
     step = (
         f'<div class="next"><b>What to do next</b><div><p>{esc(next_step(latest, target, status, report["clusters"]))}</p>'
         f'<span class="who">{who}<span class="d">{esc(due_date(as_of, getattr(brief, "by", None)))}</span></span></div></div>'
     )
     cover = (
         f'<section class="slide cover">{header}<h1>{esc(heading(report["feature"], status))}</h1>'
-        f'<p class="lede">{esc(lede(latest, target, status))}</p><p class="verdict">{status_chip(status)}</p>'
-        f'<div class="panel">{pic}</div>{step}</section>'
+        f'<p class="lede">{esc(lede(latest, target, status))}</p><p class="verdict">{check_text(status)}</p>'
+        f"{pic}{step}</section>"
     )
     detail = (
         '<section class="slide"><div class="meta"><span>What the test found</span></div><div class="cols">'
@@ -408,7 +394,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None) -> str:
     title = esc(f"Quality test: {report['feature']}")
     return (
         '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<title>{title}</title><style>{floor_fonts(stylesheet() + sk.CSS + PAGE_CSS)}</style></head><body><main class="solo">{cover}{detail}{more}'
+        f'<title>{title}</title><style>{floor_fonts(stylesheet() + sk.CSS + sk.SCORECARD_CSS + PAGE_CSS)}</style></head><body><main class="solo">{cover}{detail}{more}'
         '<p class="foot">This quality test says whether the AI clears its target before release. It is not the project\'s result: only did-it-land reads that. '
         "Every figure is computed in code from the logs named, and cost is cited from cost-budget-check.</p></main></body></html>\n"
     )

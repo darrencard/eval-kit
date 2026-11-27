@@ -435,7 +435,7 @@ class Report(Temp):
     def test_figures_on_the_fixture(self) -> None:
         r = self.run_report()
         latest = r["versions"][-1]
-        self.assertEqual(r["status"], "not confirmed: inside noise")
+        self.assertEqual(r["status"], "not confirmed: too close to call")
         self.assertFalse(r["blocking"])
         self.assertEqual((latest["cases"], latest["passed"], latest["pass_rate"]), (30, 24, 80.0))
         self.assertEqual((latest["dev_cases"], latest["dev_passed"]), (70, 63))
@@ -576,15 +576,15 @@ class Report(Temp):
 
     def test_status_vocabulary(self) -> None:
         for kw in ({}, {"seal": None}, {"target": 99.0}, {"target": None}):
-            self.assertIn(self.run_report(**kw)["status"], {"meets target", "below target", "not confirmed: inside noise", None})
+            self.assertIn(self.run_report(**kw)["status"], {"meets target", "below target", "not confirmed: too close to call", None})
 
     def test_24_of_30_never_reads_as_a_precise_80(self) -> None:
         r = self.run_report()
-        self.assertEqual(r["status"], "not confirmed: inside noise")
+        self.assertEqual(r["status"], "not confirmed: too close to call")
         why = r["reasons"][0]
         self.assertIn("62.7% to 90.5%", why)
         self.assertIn("however many cases", why)
-        self.assertIn("**Status: not confirmed: inside noise.**", report.markdown(r))
+        self.assertIn("**Status: not confirmed: too close to call.**", report.markdown(r))
 
     def test_meets_target_only_when_the_interval_clears_it(self) -> None:
         r = self.run_report(target=60.0)
@@ -593,7 +593,7 @@ class Report(Temp):
 
     def test_inside_noise_names_the_cases_that_would_settle_it(self) -> None:
         r = self.run_report(target=75.0)
-        self.assertEqual(r["status"], "not confirmed: inside noise")
+        self.assertEqual(r["status"], "not confirmed: too close to call")
         need = evalcore.cases_to_clear(80.0, 75.0)
         self.assertIn(f"{need} cases would clear it", r["reasons"][0])
 
@@ -710,8 +710,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.3.4")
-        self.assertIn('version: "0.3.4"', skill)
+        self.assertEqual(plugin["version"], "0.3.5")
+        self.assertIn('version: "0.3.5"', skill)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 > Illustrative. Sample data for Acme, an invented company. No figure here is a real measurement.
 
-**Status: not confirmed: inside noise.** Held-out pass rate 80% meets the 80% target only as a point estimate: 24 of 30 has a 95% interval of 62.7% to 90.5%, which reaches under it; a rate exactly at the target never clears it, however many cases, so it needs a rate above 80%.
+**Status: not confirmed: too close to call.** Held-out pass rate 80% meets the 80% target only as a point estimate: 24 of 30 has a 95% interval of 62.7% to 90.5%, which reaches under it; a rate exactly at the target never clears it, however many cases, so it needs a rate above 80%.
 
 Against the landing brief: The brief's metric, Quote draft acceptance rate, is not an eval figure. did-it-land judges it; these evals are the build check.
 

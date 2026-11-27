@@ -1,10 +1,10 @@
 ---
 name: eval-kit
-description: Sets up and reports evals for one AI feature from traces or eval results (OpenAI Evals, Langfuse, PostHog LLM analytics, or CSV), and judges them against the feature's landing brief. Computes the held-out pass rate and autonomy (production tasks finished without a person) in code, with a 95% interval on each, and cites cost per task from cost-budget-check; seals a development and holdout split; checks the judge against calibration cases, most meant to be rejected; decides whether a new version may replace the old one; clusters failure modes with no set taxonomy; writes the evals key of the Landing Loop record and the evals.csv the Leader Report reads; and renders one HTML page for leaders. Use when the user asks to set up or report evals, compute a pass rate or autonomy rate, seal a holdout, calibrate an LLM judge, compare two prompt or model versions, read failures from traces, or prepare the Leader Report's evals source. Not for building the model, writing prompts or general data analysis.
+description: Sets up and reports evals for one AI feature from traces or eval results (OpenAI Evals, Langfuse, PostHog LLM analytics, or CSV), and judges them against the feature's landing brief. Computes the held-out pass rate and autonomy (production tasks finished without a person) in code, with a 95% interval on each, and cites cost per task from cost-budget-check; seals a development and holdout split; checks the judge against calibration cases, most meant to be rejected; decides whether a new version may replace the old one; clusters failure modes with no set taxonomy; writes the evals key of the Landing Loop project file and the evals.csv the Leader Report reads; and renders one HTML page for leaders. Use when the user asks to set up or report evals, compute a pass rate or autonomy rate, seal a holdout, calibrate an LLM judge, compare two prompt or model versions, read failures from traces, or prepare the Leader Report's evals source. Not for building the model, writing prompts or general data analysis.
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.3.4"
+  version: "0.3.5"
 ---
 
 # Eval kit
@@ -42,17 +42,17 @@ The traces can be CSV or JSONL (one JSON object per line, as most trace tools ex
 
 ## In the Landing Loop
 
-eval-kit is step 03 (Build) of the Landing Loop: eleven skills, the Leader Report among them, on one landing brief, sharing one record per bet, `landing/<bet>.json`.
+eval-kit is step 03 (Build) of the Landing Loop: eleven skills, the Leader Report among them, on one landing brief (a one-page plan: what good looks like, by when, at what cost), sharing one project file per project, `landing/<bet>.json`. In what you tell the user, say project, target and the project file; if the user says "bet", use their word. Keys, file names and flags keep their names.
 
 ```bash
 python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <bet-slug> --out run
 ```
 
 - **The brief** is parsed by `scripts/vendor/landing_brief.py`, copied unchanged from the Leader Report at the commit in `vendor/VENDORED.json`. Never edit it or write a second parser. `python3 scripts/landing.py check BRIEF.md` says what the brief judges.
-- **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure reads meets target when it and its interval's low end meet the brief's bar, not confirmed: inside noise when only the point estimate does, and below target when it does not; the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is below target if either reads below; meets target only when both do; not confirmed: inside noise when the only gap is the interval. Never call an eval landed, watch or stalled: those are a bet's status, and only did-it-land sets them.
-- **The record.** It writes only the `evals` key and keeps every other key exactly. It refuses a record whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
-- **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per task from the record's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
-- **For leaders**, open `run/report.html`: one self-contained page on the Leader Report's own template (`vendor/template.html`, its whole stylesheet) in plain words. The verdict is the heading, then the likely range of the pass rate against the target (drawn with `vendor/svgkit.py`, vendored from landing-loop), one next step owned by the brief's decider, the figures in two columns, and everything technical folded under "For your engineers". The page prints `not confirmed: inside noise` as "not confirmed: too close to call"; the record keeps the stored words. `run/report.md` is its plain-text twin.
+- **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure reads meets target when it and its interval's low end meet the brief's target, not confirmed: too close to call when only the point estimate does, and below target when it does not; the brief's target becomes the eval target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is below target if either reads below; meets target only when both do; not confirmed: too close to call when the only gap is the interval. Never call an eval landed, watch or stalled: those are a project's status, and only did-it-land sets them.
+- **The project file.** It writes only the `evals` key and keeps every other key exactly. It refuses a project file whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
+- **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per task from the project file's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
+- **For leaders**, open `run/report.html`: one self-contained page on the Leader Report's own template (`vendor/template.html`, its whole stylesheet) in plain words. The verdict is the heading, then scorecard rows, one per version, its pass rate on the test cases kept back as a dot against the target tick (drawn with `vendor/svgkit.py` 1.2.0, vendored from landing-loop), one next step with its owner (`--owner`) and the brief's decider, the figures in two columns, and everything technical folded under "For your engineers". The page, the twin and the project file all say "not confirmed: too close to call". `run/report.md` is its plain-text twin.
 
 ## Live data first
 
@@ -94,18 +94,18 @@ Needed whenever eval rows carry `score` rather than `passed`. `python3 scripts/c
 python3 scripts/report.py traces.csv --out run --feature "<feature>" --seal holdout.seal.json --judge-scores run/judge_scores.csv --target <percent>
 ```
 
-It writes `run/evals.csv`, `run/report.json`, `run/report.html` and `run/report.md`, or refuses and writes nothing. The status for the latest version is a build check, never a bet's status (landed, watch and stalled are did-it-land's):
+It writes `run/evals.csv`, `run/report.json`, `run/report.html` and `run/report.md`, or refuses and writes nothing. The status for the latest version is a build check, never a project's status (landed, watch and stalled are did-it-land's):
 
 | Status | When |
 |---|---|
 | meets target | Held-out pass rate meets the target and its 95% interval's low end does too, the holdout is sealed, the judge is calibrated (or a person labelled the cases), development is no more than 10 points ahead of holdout, and no held-out case the version before passed now fails |
 | below target | Held-out pass rate is under the target |
-| not confirmed: inside noise (a build check word) | Every condition above holds except one: the rate meets the target but its 95% interval reaches under it. The reason gives the interval and the case count at the same rate that would clear it (a rate exactly at the target never clears it) |
+| not confirmed: too close to call (a build check word) | Every condition above holds except one: the rate meets the target but its 95% interval reaches under it. The reason gives the interval and the case count at the same rate that would clear it (a rate exactly at the target never clears it) |
 | not confirmed (no word) | The rate meets the target but another condition above is missing, or no target is set |
 
 `blocking` is true, whatever the status, when the new version fails a held-out case the one before passed (the reason also names autonomy if it rose meanwhile), or the rate is more than 10 points under target.
 
-Every rate carries a 95% Wilson interval, and a rate meets a target only when the interval's low end clears it, so 24 of 30 never reads as a precise 80%. When the status is not confirmed: inside noise, repeat the interval and the case count; do not round it up to meets target. When the promotion gain sits inside either rate's interval, say the gain is direction, not size.
+Every rate carries a 95% Wilson interval, and a rate meets a target only when the interval's low end clears it, so 24 of 30 never reads as a precise 80%. When the status is not confirmed: too close to call, repeat the interval and the case count; do not round it up to meets target. When the promotion gain sits inside either rate's interval, say the gain is direction, not size.
 
 The promotion verdict says whether the latest version may replace the one before: only by a gain on the same held-out cases with no new failure. A tie goes to the earlier version.
 

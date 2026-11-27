@@ -18,7 +18,7 @@ from typing import Any
 MEETS = "meets target"
 BELOW = "below target"
 # The point estimate meets the target but the 95% interval reaches under it: 24 of 30 is not a precise 80%.
-NOISE = "not confirmed: inside noise"
+NOISE = "not confirmed: too close to call"
 # The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
 EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
 # A judge score at or above this bar is a pass, when a row carries `score` instead of `passed`.
