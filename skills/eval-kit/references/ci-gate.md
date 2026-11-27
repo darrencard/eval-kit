@@ -31,6 +31,14 @@ jobs:
         run: cat eval-run/report.md >> "$GITHUB_STEP_SUMMARY"
 ```
 
-`--fail-on blocking` blocks a version that fails a held-out case the one before passed, or sits more than 10 points under target. Use `--fail-on below-target` to block anything short of meets target: also an unsealed holdout, an uncalibrated judge or a pass rate under target. Exit codes: 0 passed the gate, 1 the report was refused (fix the data; nothing is written), 2 the gate failed (the report is written).
+The gate reads the same status the page prints and the project file stores, one rule on the 95% interval: meets target only when its low end clears the target, below target only when its high end is under it, otherwise not confirmed: too close to call. Pick one gate:
+
+1. `--fail-on blocking` exits 2 when the version fails a held-out case the one before passed, or sits more than 10 points under target.
+2. `--fail-on below-target` exits 2 only when the status is below target: the range's high end is under the target.
+3. `--fail-on not-met` exits 2 unless the status is meets target: too close to call, below target, an unsealed holdout or an uncalibrated judge all fail it.
+
+At an 80% target, 21 of 30 (70%, range 52.1% to 83.3%) is too close to call: it passes `blocking` and `below-target`, and fails `not-met`.
+
+Exit codes: 0 passed the gate, 1 the report was refused (fix the data; nothing is written), 2 the gate failed (the report is written).
 
 Pass `--seal` explicitly in CI. Without it, a first run would write a new seal in the runner and pass a holdout nobody committed.

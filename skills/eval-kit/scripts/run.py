@@ -10,7 +10,7 @@ written to the `evals` key of landing/<bet>.json, the Landing Loop record, and n
 
 Usage:
   python3 scripts/run.py TRACES.csv --feature "Quote drafting" --target 85 [--out run] [--map SCHEMA=YOURS ...]
-      [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on below-target|blocking] [--illustrative]
+      [--seal PATH] [--judge-scores FILE.csv] [--calibration-cases FILE.json] [--fail-on below-target|not-met|blocking] [--illustrative]
       [--brief BRIEF.md --bet SLUG [--landing landing] [--as-of YYYY-MM-DD]] [--owner ROLE]
 """
 

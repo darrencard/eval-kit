@@ -505,9 +505,10 @@ class Report(Temp):
     def test_no_target_gives_no_status(self) -> None:
         self.assertIsNone(self.run_report(target=None)["status"])
 
-    def test_just_under_target_is_below_target_and_not_blocking(self) -> None:
+    def test_just_under_target_inside_the_range_is_too_close_to_call(self) -> None:
+        # 24 of 30 is 80%, range 62.7 to 90.5: under 85 as a point, but the high end reaches over it.
         r = self.run_report(target=85.0)
-        self.assertEqual((r["status"], r["blocking"]), ("below target", False))
+        self.assertEqual((r["status"], r["blocking"]), ("not confirmed: too close to call", False))
 
     def test_far_under_target_is_below_target_and_blocking(self) -> None:
         r = self.run_report(target=95.0)
@@ -611,6 +612,47 @@ class Report(Temp):
         self.assertTrue(any("inside" in x or "point estimate" in x for x in r["reasons"]))
 
 
+class OneRule(unittest.TestCase):
+    """The page, the stored evals.status and the CI gate read one rule, evalcore.check_word."""
+
+    @staticmethod
+    def latest(passed: int, cases: int) -> dict:
+        rate = evalcore.pct(passed, cases)
+        ci = wilson(passed, cases)
+        return {"pass_rate": rate, "pass_ci": ci, "passed": passed, "cases": cases, "judge_scored": False, "dev_pass_rate": None, "autonomy_rate": None}
+
+    def test_the_rule_reads_the_range_ends(self) -> None:
+        self.assertEqual(evalcore.check_word((80.0, 95.0), 80), "meets target")
+        self.assertEqual(evalcore.check_word((60.0, 79.9), 80), "below target")
+        self.assertEqual(evalcore.check_word((52.1, 83.3), 80), "not confirmed: too close to call")
+        self.assertEqual(evalcore.check_word((10.0, 20.0), 25, higher_is_better=False), "meets target")
+        self.assertEqual(evalcore.check_word((26.0, 40.0), 25, higher_is_better=False), "below target")
+
+    def test_21_of_30_at_an_80_target_is_too_close_to_call_everywhere(self) -> None:
+        import render_html
+
+        latest = self.latest(21, 30)  # 70%, range 52.1 to 83.3: the high end reaches over 80
+        status, blocking, reasons = report.decide_status(latest, 80.0, True, None, None)
+        self.assertEqual((status, blocking), ("not confirmed: too close to call", False))
+        self.assertIn("52.1% to 83.3%", reasons[-1])
+        self.assertIn("not confirmed below", reasons[-1])
+        # The page reads the same word for that row.
+        self.assertEqual(render_html.range_word(latest, 80.0), status)
+        # The CI gate: below-target passes, not-met fails, blocking passes.
+        rep = {"latest": "v1.3", "status": status, "blocking": blocking}
+        with redirect_stdout(io.StringIO()):
+            report.gate(rep, "below-target")
+            report.gate(rep, "blocking")
+            with self.assertRaises(SystemExit) as ctx:
+                report.gate(rep, "not-met")
+        self.assertEqual(ctx.exception.code, 2)
+
+    def test_far_under_blocks_but_keeps_the_range_word(self) -> None:
+        latest = self.latest(3, 6)  # 50%, range 18.8 to 81.2: far under 80, yet the range reaches over it
+        status, blocking, _ = report.decide_status(latest, 80.0, True, None, None)
+        self.assertEqual((status, blocking), ("not confirmed: too close to call", True))
+
+
 class OneCommand(Temp):
     def copy_traces(self) -> Path:
         dst = self.tmp / "traces.csv"
@@ -636,20 +678,28 @@ class OneCommand(Temp):
             run.main([str(src), "--feature", "x", "--target", "60", "--out", str(out), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
         self.assertEqual(json.loads((out / "report.json").read_text(encoding="utf-8"))["status"], "meets target")
 
-    def test_inside_noise_fails_a_below_target_gate_but_not_a_blocking_one(self) -> None:
+    def test_too_close_to_call_fails_not_met_but_not_below_target_or_blocking(self) -> None:
         src = self.copy_traces()
-        with redirect_stdout(io.StringIO()):
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "a"), "--judge-scores", str(JUDGE), "--fail-on", "blocking"])
+        for i, gate in enumerate(("blocking", "below-target")):
+            with redirect_stdout(io.StringIO()):
+                run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / f"a{i}"), "--judge-scores", str(JUDGE), "--fail-on", gate])
         with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "b"), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "b"), "--judge-scores", str(JUDGE), "--fail-on", "not-met"])
         self.assertEqual(ctx.exception.code, 2)
 
     def test_fail_on_gates_ci(self) -> None:
         src = self.copy_traces()
+        # 24 of 30 has a high end of 90.5%, under a 95% target: below target on the range, so the gate trips.
         with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
-            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "run"), "--fail-on", "below-target"])
+            run.main([str(src), "--feature", "x", "--target", "95", "--out", str(self.tmp / "run"), "--judge-scores", str(JUDGE), "--fail-on", "below-target"])
         self.assertEqual(ctx.exception.code, 2)
         self.assertTrue((self.tmp / "run" / "report.md").exists())
+        # An unconfirmed run (no judge calibration) is not below target, but it is not met either.
+        with redirect_stdout(io.StringIO()):
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "u"), "--fail-on", "below-target"])
+        with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as ctx:
+            run.main([str(src), "--feature", "x", "--target", "80", "--out", str(self.tmp / "v"), "--fail-on", "not-met"])
+        self.assertEqual(ctx.exception.code, 2)
 
     def test_fail_on_blocking_trips_only_on_a_blocking_finding(self) -> None:
         src = self.copy_traces()
@@ -710,8 +760,8 @@ class Hygiene(unittest.TestCase):
     def test_versions_in_step(self) -> None:
         plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
         skill = (ROOT / "skills" / "eval-kit" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertEqual(plugin["version"], "0.3.6")
-        self.assertIn('version: "0.3.6"', skill)
+        self.assertEqual(plugin["version"], "0.3.7")
+        self.assertIn('version: "0.3.7"', skill)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.7, 2026-11-27
+
+- One rule for the page, the stored `evals.status` and the CI gate, in one function, `evalcore.check_word`, read by `report.py`, `render_html.py` and `landing.py`: meets target only when the likely range's low end clears the target, below target only when its high end is under it, otherwise not confirmed: too close to call. 21 of 30 at an 80% target (70%, range 52.1% to 83.3%) now reads too close to call in the status too, not below target; its reason gives the case count that would confirm it below. `blocking` is unchanged: a new held-out failure, or a rate more than 10 points under target.
+- CI gate: `--fail-on below-target` exits 2 only when the status is below target, on the range; new `--fail-on not-met` exits 2 unless the status is meets target. SKILL.md, README and references/ci-gate.md say so. Tests: the rule on both range ends, 21 of 30 at 80% across status, page row and all three gates, and a rate far under that still blocks.
+- The Markdown twin prints the page's next step with its owner, decider and due date.
+- 12px floor: `floor_fonts` raises every size under 12px to 12px, and the page's own labels (What to do next, Owner, Decides, Due, the figure labels) are 12px; no 11.5px text remains. The vendored files are unchanged. Test: no font size under 12px in the page CSS.
+- Dates never break: every ISO date in the page's text sits in a `white-space:nowrap` span (attributes, code and the title keep theirs). Test.
+- README opens with the vocabulary bridge, "A bet is a project you expect to move a number; its bar is the target its landing brief sets."; SKILL.md says "Use the user's word, project or bet; the record key stays `bet`."
+
 ## 0.3.6, 2026-11-27
 
 - Each version row draws its likely range: svgkit 1.3.0 (vendored byte-identical, pinned at landing-loop 211866e) draws `range_line(interval=(lo, hi))` as a thin grey line with end caps through the dot, and `frame_domain` takes the interval as each row's fourth item so its ends fit the one scale. The figure column prints the range: `24 OF 30 · 80% · RANGE 62.7 TO 90.5%` (v1.3: `21 OF 30 · 70% · RANGE 52.1 TO 83.3%`). The caption names the grey line. Tests: one interval per row (a segment and two end caps), its ends printed in the row, no text in any SVG, the svgkit pin at 1.3.0.

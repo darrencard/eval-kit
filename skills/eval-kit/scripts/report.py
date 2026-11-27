@@ -46,7 +46,7 @@ from evalcore import (  # noqa: E402
     EvalError,
     Ledger,
     Trace,
-    clears,
+    check_word,
     load_traces,
     noise_reason,
     parse_map,
@@ -93,7 +93,7 @@ def version_row(traces: list[Trace], v: str) -> dict[str, Any]:
     return row
 
 
-FAIL_ON = ("below-target", "blocking")
+FAIL_ON = ("below-target", "not-met", "blocking")
 
 
 def decide_status(
@@ -101,30 +101,33 @@ def decide_status(
 ) -> tuple[str | None, bool, list[str]]:
     """(status, blocking, reasons) for the latest version.
 
-    status is "meets target" only when the 95% interval's lower bound clears the target, so 24 of 30 never reads
-    as a precise 80%. When the rate meets the target and the interval reaches under it, status is "not confirmed:
-    too close to call", with the interval and the case count that would settle it. status is "below target" when the
-    rate is under the target, and None when the run cannot confirm anything (no target, an unsealed holdout, an
-    uncalibrated judge, development far ahead of holdout, or a new held-out failure). These are build checks, not a
-    bet's status: landed, watch and stalled are did-it-land's words and never print here.
-    blocking is True for what a CI gate should stop: a new held-out failure, or a rate far under target.
+    The word is evalcore.check_word, the one rule the page and the CI gate read too: meets target only when the 95%
+    interval's low end clears the target, below target only when its high end is under it, otherwise not confirmed:
+    too close to call, with the interval and the case count that would settle it. So 24 of 30 never reads as a
+    precise 80%, and 21 of 30 never reads as a precise 70%. status is None when the run cannot confirm anything (no
+    target, an unsealed holdout, an uncalibrated judge, development far ahead of holdout, or a new held-out failure),
+    unless the range already reads below target. These are build checks, not a project's status: landed, watch and
+    stalled are did-it-land's words and never print here.
+    blocking is True for what a CI gate should stop: a new held-out failure, or a rate more than STALL_MARGIN points
+    under target.
     """
-    reasons: list[str] = []
     rate = latest["pass_rate"]
+    word = check_word(latest["pass_ci"], target) if target is not None else None
     if verdict and verdict.new_failures:
         why = [f"it fails {len(verdict.new_failures)} held-out case(s) {verdict.champion} passed"]
         # Goodhart guard: autonomy bought with quality is not progress. Name it when the pair moves apart.
         if before and latest["autonomy_rate"] is not None and before["autonomy_rate"] is not None and latest["autonomy_rate"] > before["autonomy_rate"]:
             why.append(f"autonomy rose ({before['autonomy_rate']:g}% to {latest['autonomy_rate']:g}%) while held-out quality fell")
-        below = target is not None and rate < target
-        return (BELOW if below else None), True, why
+        return (BELOW if word == BELOW else None), True, why
     if target is None:
         return None, False, ["no target is set for the held-out pass rate"]
-    if rate < target - STALL_MARGIN:
-        return BELOW, True, [f"held-out pass rate {rate:g}% is more than {STALL_MARGIN:g} points under the {target:g}% target"]
-    below = rate < target
-    if below:
-        reasons.append(f"held-out pass rate {rate:g}% is under the {target:g}% target")
+    blocking = rate < target - STALL_MARGIN
+    reasons: list[str] = []
+    if blocking:
+        reasons.append(f"held-out pass rate {rate:g}% is more than {STALL_MARGIN:g} points under the {target:g}% target")
+    elif word == BELOW:
+        hi = latest["pass_ci"][1]
+        reasons.append(f"held-out pass rate {rate:g}% is under the {target:g}% target, and its 95% interval stays under it (high end {hi:g}%)")
     if not sealed:
         reasons.append("the holdout is not sealed, so it could have been tuned against")
     if latest["judge_scored"] and not (calib and calib["calibrated"]):
@@ -132,15 +135,16 @@ def decide_status(
     gap = None if latest["dev_pass_rate"] is None else round(latest["dev_pass_rate"] - rate, 1)
     if gap is not None and gap > OVERFIT_GAP:
         reasons.append(f"development runs {gap:g} points ahead of holdout, which reads as tuning to the practice cases")
-    if below:
-        return BELOW, False, reasons
-    noisy = not clears(latest["pass_ci"], target)
-    if noisy:
+    if word == BELOW:
+        return BELOW, blocking, reasons
+    # A seal, a judge or a gap leaves the run unconfirmed whatever the range says; a rate far under only blocks.
+    unconfirmed = len(reasons) > (1 if blocking else 0)
+    if word == NOISE:
         reasons.append(noise_reason("held-out pass rate", latest["passed"], latest["cases"], rate, latest["pass_ci"], target))
-    if len(reasons) > 1 or (reasons and not noisy):
-        return None, False, reasons
-    if noisy:
-        return NOISE, False, reasons
+    if unconfirmed:
+        return None, blocking, reasons
+    if word == NOISE:
+        return NOISE, blocking, reasons
     lo = latest["pass_ci"][0]
     why = f"held-out pass rate {rate:g}% meets the {target:g}% target on a sealed holdout, and its 95% interval does not reach under it (low end {lo:g}%)"
     return MEETS, False, [why]
@@ -272,7 +276,18 @@ def write_evals_csv(report: dict, path: Path) -> None:
             w.writerow(["" if r[c] is None else r[c] for c in EVALS_COLUMNS])
 
 
-def markdown(report: dict, evals: dict | None = None) -> str:
+def next_step_md(report: dict, evals: dict | None, brief: Any, owner: str | None) -> list[str]:
+    """The page's one next step, with who owns it, who decides and when it is due, as the page prints them."""
+    latest = report["versions"][-1]
+    status = evals["status"] if evals else report["status"]
+    as_of = evals["as_of"] if evals else latest["run_at"]
+    step = render_html.next_step(latest, report["target"], status, report["clusters"])
+    who = [f"Owner: {owner}." if owner else "", f"Decides: {brief.decides}." if getattr(brief, "decides", None) else ""]
+    who.append(f"Due: {render_html.due_date(as_of, getattr(brief, 'by', None))}.")
+    return ["## What to do next", "", step, "", " ".join(w for w in who if w), ""]
+
+
+def markdown(report: dict, evals: dict | None = None, brief: Any = None, owner: str | None = None) -> str:
     latest = next(r for r in report["versions"] if r["version"] == report["latest"])
     led = latest["ledger"]
     out = [f"# Eval kit: {report['feature']}", ""]
@@ -286,7 +301,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
         a = evals["against_brief"]
         if a["judged"]:
             v = "not computed" if a.get("value") is None else f"{a['value']:g}%"
-            out.append(f"Against the landing brief: **{status_text(a['status'])}**. {a['metric']} is {v} against a bar of {a['bar']} by {a['by']}.")
+            out.append(f"Against the landing brief: **{status_text(a['status'])}**. {a['metric']} is {v} against a target of {a['bar']} by {a['by']}.")
             if a.get("note"):
                 out.append(f"{a['note'][:1].upper()}{a['note'][1:]}.")
         else:
@@ -310,6 +325,7 @@ def markdown(report: dict, evals: dict | None = None) -> str:
     else:
         out.append(f"Cost: {COST_MISSING}.")
     out.append("")
+    out += next_step_md(report, evals, brief, owner)
     if report["promotion"]:
         p = report["promotion"]
         verb = "may replace" if p["promote"] else "may not replace"
@@ -377,7 +393,10 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument(
         "--fail-on",
         choices=FAIL_ON,
-        help="for a CI gate: below-target exits 2 unless the status is meets target; blocking exits 2 on a new held-out failure or a rate far under target",
+        help=(
+            "for a CI gate, exit 2: below-target when the status is below target; not-met unless it is meets target; "
+            "blocking on a new held-out failure or a rate more than 10 points under target"
+        ),
     )
     p.add_argument("--record", help="a Landing Loop record, landing/<bet>.json, to cite cost per task from its cost key")
     args = p.parse_args(argv)
@@ -388,11 +407,15 @@ def main(argv: list[str] | None = None) -> None:
 def gate(report: dict, fail_on: str | None, evals: dict | None = None) -> None:
     """For CI: exit 2 when --fail-on trips. The files are written first, so the run can be read.
 
-    below-target trips unless the status is meets target; blocking trips on a new held-out failure or a held-out
-    rate far under target. With the evals key (run.py passes it), its status and blocking are the ones read."""
+    The gate reads the same status the page prints and the project file stores (evalcore.check_word):
+    below-target trips only when the status is below target (the likely range's high end is under the target);
+    not-met trips unless the status is meets target (so too close to call fails it); blocking trips on a new
+    held-out failure or a held-out rate more than STALL_MARGIN points under target. With the evals key (run.py
+    passes it), its status and blocking are the ones read."""
     src = evals if evals else report
     status, blocking = src["status"], src["blocking"]
-    if (fail_on == "below-target" and status != MEETS) or (fail_on == "blocking" and blocking):
+    trips = {"below-target": status == BELOW, "not-met": status != MEETS, "blocking": bool(blocking)}
+    if fail_on and trips[fail_on]:
         print(f"report: failing the gate, {report['latest']}: {status_text(status)} (--fail-on {fail_on})")
         raise SystemExit(2)
 
@@ -402,7 +425,7 @@ def write(report: dict, out: Path, evals: dict | None = None, brief: Any = None,
     out.mkdir(parents=True, exist_ok=True)
     write_evals_csv(report, out / "evals.csv")
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    (out / "report.md").write_text(markdown(report, evals), encoding="utf-8")
+    (out / "report.md").write_text(markdown(report, evals, brief, owner), encoding="utf-8")
     (out / "report.html").write_text(render_html.render(report, evals, brief, owner), encoding="utf-8")
     status = evals["status"] if evals else report["status"]
     print(f"report: {report['latest']}: {status_text(status)}; wrote evals.csv, report.json, report.html and report.md to {out}")

@@ -32,7 +32,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
 
 import svgkit as sk  # noqa: E402  (vendored, unchanged; see vendor/VENDORED.json)
-from evalcore import BELOW, MEETS, NOISE, cases_to_clear  # noqa: E402
+from evalcore import BELOW, MEETS, NOISE, cases_to_clear, check_word  # noqa: E402
 from landing import VERSION  # noqa: E402
 
 TEMPLATE = Path(__file__).resolve().parent / "vendor" / "template.html"
@@ -50,23 +50,23 @@ main.solo{margin-left:0}
 .status{font:400 12px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t1)}
 .verdict{margin:0 0 20px}
 .next{margin-top:28px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:8px 32px;align-items:baseline;border:1px solid var(--brass);border-radius:12px;padding:20px 24px;background:var(--brass-bg)}
-.next>b{font:400 11px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.next>b{font:400 12px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
 .next p{margin:0;font-size:16px;line-height:1.5;color:var(--t1)}
-.next .who{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:10px;font:400 11.5px/16px var(--mono);color:var(--brass)}
-.next .who span::before{font-size:11px;letter-spacing:.1em;color:var(--t3);margin-right:8px}
+.next .who{display:flex;flex-wrap:wrap;gap:4px 24px;margin-top:10px;font:400 12px/16px var(--mono);color:var(--brass)}
+.next .who span::before{font-size:12px;letter-spacing:.1em;color:var(--t3);margin-right:8px}
 .next .who .w::before{content:"OWNER"}.next .who .o::before{content:"DECIDES"}.next .who .d::before{content:"DUE"}
 .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px 56px;align-items:start}
 .cols h3{margin-bottom:8px}
 .figs{margin:0;display:grid}
-.figs>div{display:grid;grid-template-columns:132px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:11px 0}
-.figs dt{font:400 11px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.figs>div{display:grid;grid-template-columns:132px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:12px 0}
+.figs dt{font:400 12px/22px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
 .figs dd{margin:0;font-size:13.5px;line-height:1.55;color:var(--t2)}
 .figs dd b{color:var(--t1);font-weight:500}
 .fails{margin:0;padding:0;list-style:none}
-.fails li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:11px 0;font-size:13.5px;line-height:1.5;color:var(--t2)}
+.fails li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line);padding:12px 0;font-size:13.5px;line-height:1.5;color:var(--t2)}
 .fails .pc{font:400 12px/20px var(--mono);color:var(--t1);font-variant-numeric:tabular-nums}
 .fails .pc i{display:block;height:4px;margin-top:6px;border-radius:1px;background:var(--agent)}
-.fails small{display:block;font:400 11px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:2px}
+.fails small{display:block;font:400 12px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:2px}
 .solo details{margin-top:4px}
 .solo details>*:not(summary){margin-top:12px}
 .solo details p,.solo details li{margin:0 0 10px;font-size:13px;color:var(--t2)}
@@ -79,10 +79,11 @@ main.solo{margin-left:0}
 @media (max-width:980px){.foot{padding:24px 16px 48px}.solo .slide.cover{padding-top:24px}.cols,.next{grid-template-columns:1fr}
 .stack table,.stack tbody,.stack tr,.stack td{display:block}.stack tr:first-child{display:none}.stack tr{padding:10px 16px;border-bottom:1px solid var(--line)}
 .stack td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}.stack td.num{text-align:left;white-space:normal}
-.stack td::before{content:attr(data-l);font:400 11px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
+.stack td::before{content:attr(data-l);font:400 12px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
 @media (max-width:560px){.figs>div{grid-template-columns:1fr;gap:0}}
 .solo h1,.solo .lede,.solo .next,.solo .slide p,.solo .slide li,.solo .sc-c,.sk figcaption{max-width:none}
 .solo .slide p,.solo .slide li,.solo .sc-c{text-wrap:pretty}
+.nd{white-space:nowrap}
 """
 
 # The check words as the record stores them, and as the page prints them.
@@ -108,19 +109,41 @@ def plain(text: str) -> str:
     return text
 
 
-FONT_FLOOR = 11  # px: no text on the page renders smaller, at any width
+FONT_FLOOR = 12  # px: no text on the page renders smaller, at any width
 FONT_SIZE = re.compile(r"(font-size\s*:\s*)(\d+(?:\.\d+)?)px")
 FONT_SHORTHAND = re.compile(r"(font\s*:[^;{}]*?)(?<![\w.-])(\d+(?:\.\d+)?)px")
 
 
 def floor_fonts(css: str) -> str:
-    """Raise every font size under 11px to 11px. The vendored template and svgkit stay byte-identical on disk;
+    """Raise every font size under 12px to 12px. The vendored template and svgkit stay byte-identical on disk;
     the floor applies to their text as the page is built, so this page's CSS has no smaller size anywhere."""
 
     def up(m: re.Match[str]) -> str:
         return f"{m.group(1)}{FONT_FLOOR if float(m.group(2)) < FONT_FLOOR else m.group(2)}px"
 
     return FONT_SHORTHAND.sub(up, FONT_SIZE.sub(up, css))
+
+
+ISO_DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
+TAG = re.compile(r"(<[^>]*>)")
+RAW = re.compile(r"<(style|title|code|script)\b", re.I)
+
+
+def nowrap_dates(body: str) -> str:
+    """Wrap every ISO date in the page's text in white-space:nowrap, so "2026-09-07" never breaks at a hyphen.
+    Only text between tags changes: attributes (aria-label, title) and style, title, code and script keep theirs."""
+    parts = TAG.split(body)
+    skip = None
+    for i, part in enumerate(parts):
+        if i % 2:  # a tag
+            m = RAW.match(part)
+            if m:
+                skip = m.group(1).lower()
+            elif skip and part.lower().startswith(f"</{skip}"):
+                skip = None
+        elif not skip:
+            parts[i] = ISO_DATE.sub(r'<span class="nd">\g<0></span>', part)
+    return "".join(parts)
 
 
 def stylesheet() -> str:
@@ -173,17 +196,10 @@ def pct(v: float) -> str:
 
 
 def range_word(r: dict, target: float | None) -> str | None:
-    """The check rule for one version, read on its likely range alone: meets target only when the range's low end
-    clears the target, below target only when its high end is under it, otherwise not confirmed: too close to call.
-    None when no target is set."""
-    if target is None:
-        return None
-    lo, hi = r["pass_ci"]
-    if lo >= target:
-        return MEETS
-    if hi < target:
-        return BELOW
-    return NOISE
+    """The check rule for one version (evalcore.check_word, the rule the stored status and the CI gate read): meets
+    target only when the range's low end clears the target, below target only when its high end is under it,
+    otherwise not confirmed: too close to call. None when no target is set."""
+    return None if target is None else check_word(r["pass_ci"], target)
 
 
 def row_word(r: dict, latest: dict, target: float | None, status: str | None) -> str | None:
@@ -253,7 +269,8 @@ def lede(latest: dict, target: float | None, status: str | None) -> str:
     if target is None:
         text += ", and no target is set."
     elif status == NOISE:
-        text += f", which reaches under the {pct(target)} target, so this quality test cannot confirm it yet."
+        side = "under" if latest["pass_rate"] >= target else "over"
+        text += f", which reaches {side} the {pct(target)} target, so this quality test cannot call it either way yet."
         if latest["pass_rate"] == target:
             text += " A pass rate exactly at the target never clears it, however many cases are added."
     elif status == MEETS:
@@ -266,6 +283,10 @@ def lede(latest: dict, target: float | None, status: str | None) -> str:
 def next_step(latest: dict, target: float | None, status: str | None, clusters: list[dict]) -> str:
     if target is None:
         return "Set a target in the landing brief, then run the quality test again."
+    if status == NOISE and latest["pass_rate"] < target:
+        need = cases_to_clear(latest["pass_rate"], target, higher_is_better=False)
+        more = f" At the same rate, {need} cases would confirm it below." if need else ""
+        return f"Fix the AI or add test cases kept back, then run the quality test again.{more}"
     if status == NOISE:
         need = cases_to_clear(latest["pass_rate"], target)
         if need is None:
@@ -411,7 +432,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None, owner: st
     eng.append(lt.html())
     eng.append(
         "<p>With --brief and --bet, the run adds its page to the project file: the <code>evals</code> key of <code>landing/&lt;bet&gt;.json</code>, "
-        "and no other key. --fail-on below-target or blocking turns the check into a CI gate (exit code 2).</p>"
+        "and no other key. --fail-on below-target, not-met or blocking turns the check into a CI gate (exit code 2), on the same status this page prints.</p>"
         f"<p>Built by eval-kit {esc(VERSION)}.</p>"
     )
     folds.append(fold("For your engineers", "".join(eng)))
@@ -420,7 +441,7 @@ def render(report: dict, evals: dict | None = None, brief: Any = None, owner: st
     title = esc(f"Quality test: {report['feature']}")
     return (
         '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-        f'<title>{title}</title><style>{floor_fonts(stylesheet() + sk.CSS + sk.SCORECARD_CSS + PAGE_CSS)}</style></head><body><main class="solo">{cover}{detail}{more}'
+        f'<title>{title}</title><style>{floor_fonts(stylesheet() + sk.CSS + sk.SCORECARD_CSS + PAGE_CSS)}</style></head><body><main class="solo">{nowrap_dates(cover + detail + more)}'
         '<p class="foot">This quality test says whether the AI clears its target before release. It is not the project\'s result: only did-it-land reads that. '
         "Every figure is computed in code from the logs named, and cost is cited from cost-budget-check.</p></main></body></html>\n"
     )

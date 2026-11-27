@@ -37,11 +37,11 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "vendor"))
 
 import landing_brief  # noqa: E402  (vendored, unchanged; see vendor/VENDORED.json)
-from evalcore import BELOW, EVALS_COLUMNS, MEETS, NOISE, EvalError, clears, noise_reason  # noqa: E402
+from evalcore import BELOW, EVALS_COLUMNS, MEETS, NOISE, EvalError, check_word, noise_reason  # noqa: E402
 
 SCHEMA = "landing-loop/1"
 SKILL = "eval-kit"
-VERSION = "0.3.6"
+VERSION = "0.3.7"
 BET = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
 # Which eval figure a brief's metric names. Matched on the metric's words, never guessed beyond these.
 FIGURES = (
@@ -92,16 +92,14 @@ def judge(brief: landing_brief.Brief, report: dict, as_of: str) -> dict[str, Any
     if brief.unit != "%":
         raise EvalError(f"the brief judges {LABELS[name].lower()}, a percent, but its bar is {brief.bar_text}.")
     prior = before[name] if before else None
-    meets = value >= brief.bar if brief.higher_is_better else value <= brief.bar
-    status = MEETS if meets else BELOW
-    notes = []
     ci = latest["pass_ci"] if name == "pass_rate" else latest["autonomy_ci"]
-    if meets and not clears(ci, brief.bar, brief.higher_is_better):
-        # Same rule as the run's own status: a point estimate inside the noise does not meet the bar.
-        status = NOISE
+    # The one rule (evalcore.check_word): the same word the run's own status and the page read.
+    status = check_word(ci, brief.bar, brief.higher_is_better)
+    notes = []
+    if status == NOISE:
         part, whole = (latest["passed"], latest["cases"]) if name == "pass_rate" else (latest["tasks_unassisted"], latest["tasks"])
         notes.append(noise_reason(LABELS[name].lower(), part, whole, value, ci, brief.bar, brief.higher_is_better, "bar"))
-    if not meets and datetime.date.fromisoformat(as_of) > datetime.date.fromisoformat(brief.by):
+    if status != MEETS and datetime.date.fromisoformat(as_of) > datetime.date.fromisoformat(brief.by):
         notes.append(f"the date, {brief.by}, has passed")
     return {**base, "judged": name, "status": status, "value": value, "prior": prior, "note": "; ".join(notes)}
 

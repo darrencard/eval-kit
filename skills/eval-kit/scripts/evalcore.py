@@ -17,7 +17,7 @@ from typing import Any
 # A build check's words. landed, watch and stalled are a bet's status, set only by did-it-land.
 MEETS = "meets target"
 BELOW = "below target"
-# The point estimate meets the target but the 95% interval reaches under it: 24 of 30 is not a precise 80%.
+# The 95% interval reaches both sides of the target: 24 of 30 is not a precise 80%, and 21 of 30 is not a precise 70%.
 NOISE = "not confirmed: too close to call"
 # The Leader Report's evals columns, in its order (product-engineering-update, scripts/collect.py).
 EVALS_COLUMNS = ("version", "run_at", "cases", "passed", "cost_per_task", "tasks", "tasks_unassisted")
@@ -128,6 +128,21 @@ def clears(ci: tuple[float, float] | list[float] | None, bar: float, higher_is_b
     return ci[0] >= bar if higher_is_better else ci[1] <= bar
 
 
+def check_word(ci: tuple[float, float] | list[float] | None, target: float, higher_is_better: bool = True) -> str | None:
+    """The one check rule, read on the 95% interval alone. The page, the stored `evals.status` and the CI gate all use it.
+
+    meets target only when the interval's low end clears the target; below target only when its high end is under it;
+    otherwise not confirmed: too close to call. For a figure where lower is better, the same rule mirrored.
+    None when there is no interval to read.
+    """
+    if not ci:
+        return None
+    lo, hi = ci
+    if higher_is_better:
+        return MEETS if lo >= target else BELOW if hi < target else NOISE
+    return MEETS if hi <= target else BELOW if lo > target else NOISE
+
+
 def cases_to_clear(rate: float, bar: float, higher_is_better: bool = True, limit: int = 1_000_000) -> int | None:
     """The fewest cases at this same rate whose 95% interval would clear the bar, or None when no count can.
 
@@ -154,15 +169,24 @@ def cases_to_clear(rate: float, bar: float, higher_is_better: bool = True, limit
 
 
 def noise_reason(what: str, part: int, whole: int, rate: float, ci: tuple | list, bar: float, higher_is_better: bool = True, noun: str = "target") -> str:
-    """Why a rate that meets the bar is not confirmed: its 95% interval, and the case count that would settle it."""
-    side = "under" if higher_is_better else "over"
-    text = f"{what} {rate:g}% meets the {bar:g}% {noun} only as a point estimate: {part} of {whole} has a 95% interval of "
-    text += f"{ci[0]:g}% to {ci[1]:g}%, which reaches {side} it"
-    need = cases_to_clear(rate, bar, higher_is_better)
-    if need is None:
+    """Why a rate is too close to call: its 95% interval reaches both sides of the target, and the case count at the
+    same rate whose interval would settle it, one way or the other."""
+    good = rate > bar if higher_is_better else rate < bar
+    if rate == bar or good:
+        side = "under" if higher_is_better else "over"
+        text = f"{what} {rate:g}% meets the {bar:g}% {noun} only as a point estimate: {part} of {whole} has a 95% interval of "
+        text += f"{ci[0]:g}% to {ci[1]:g}%, which reaches {side} it"
+    else:
+        side = "over" if higher_is_better else "under"
+        text = f"{what} {rate:g}% is short of the {bar:g}% {noun}, but {part} of {whole} has a 95% interval of "
+        text += f"{ci[0]:g}% to {ci[1]:g}%, which reaches {side} it, so it is not confirmed below"
+    if rate == bar:
         way = "above" if higher_is_better else "below"
         return text + f"; a rate exactly at the {noun} never clears it, however many cases, so it needs a rate {way} {bar:g}%"
-    return text + f"; at the same rate, {need} cases would clear it"
+    need = cases_to_clear(rate, bar, higher_is_better if good else not higher_is_better)
+    if need is None:
+        return text
+    return text + (f"; at the same rate, {need} cases would clear it" if good else f"; at the same rate, {need} cases would confirm it below")
 
 
 def parse_map(pairs: list[str] | None) -> dict[str, str]:

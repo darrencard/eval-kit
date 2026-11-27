@@ -10,6 +10,12 @@ Version v1.4 passes 24 of 30 held-out cases (80%, 95% interval 62.7 to 90.5) [L4
 It finished 143 of 200 production tasks with no person stepping in (71.5%, 95% interval 64.9 to 77.3) [L6].
 Cost per task, cited from cost-budget-check: $0.0338 [L7].
 
+## What to do next
+
+Improve the AI so it passes more than 80% of the test cases kept back, then run the quality test again. More cases alone cannot clear the target at this rate.
+
+Owner: Tech lead, Quoting squad. Decides: Head of Product, Quoting squad. Due: 2026-11-29.
+
 ## Promotion
 
 v1.4 may replace v1.3: challenger gains 10 points on held-out cases with no new failure.

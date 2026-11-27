@@ -129,12 +129,13 @@ class AgainstBrief(Temp):
         self.assertEqual(key["status"], "not confirmed: too close to call")
         self.assertFalse(key["blocking"])
 
-    def test_autonomy_below_the_bar_reads_below_target(self) -> None:
+    def test_autonomy_short_of_the_bar_inside_its_range_is_too_close_to_call(self) -> None:
+        # 143 of 200 is 71.5%, range 64.9 to 77.3: the high end reaches over the brief's bar, so it is not confirmed below.
         key = landing.evals_key(build(), landing.read_brief(BRIEF_AUTONOMY), "2026-11-26")
         a = key["against_brief"]
-        self.assertEqual((a["judged"], a["status"], a["value"]), ("autonomy_rate", "below target", 71.5))
-        self.assertEqual(key["status"], "below target")
-        self.assertTrue(any("against the brief" in r for r in key["reasons"]))
+        self.assertEqual((a["judged"], a["status"], a["value"]), ("autonomy_rate", "not confirmed: too close to call", 71.5))
+        self.assertIn("not confirmed below", a["note"])
+        self.assertEqual(key["status"], "not confirmed: too close to call")
 
     def test_never_a_bets_status_word(self) -> None:
         for brief in (BRIEF, BRIEF_AUTONOMY, BRIEF_PRODUCT):
@@ -391,7 +392,8 @@ class Page(Temp):
         frames = svgkit.frames_in(self.page())
         self.assertEqual(len(frames), 1)
         self.assertEqual(frames[0].count('<div class="sc-r">'), len(r["versions"]))
-        self.assertEqual(re.findall(r'<span class="sc-n">([^<]+)</span>', frames[0]), ["Version v1.3, 2026-10-15", "Version v1.4, 2026-11-15"])
+        names = [re.sub(r"<[^>]+>", "", n) for n in re.findall(r'<span class="sc-n">((?:[^<]|<span class="nd">[^<]*</span>)*)</span>', frames[0])]
+        self.assertEqual(names, ["Version v1.3, 2026-10-15", "Version v1.4, 2026-11-15"])
         words = re.findall(r'<span class="sc-w[^"]*">([^<]+)</span>', frames[0])
         self.assertEqual(words, ["NOT CONFIRMED: TOO CLOSE TO CALL"] * 2, "v1.3's range, 52.1% to 83.3%, crosses the 80% target")
 
@@ -485,19 +487,29 @@ class Page(Temp):
         for word in (r"\brecords?\b", r"\bbets?\b", r"\bthe bar\b", r"\bprds?\b", r"\barr\b", r"\btokens?\b"):
             self.assertIsNone(re.search(word, public), word)
 
-    def test_no_text_is_smaller_than_11px(self) -> None:
+    def test_no_text_is_smaller_than_12px(self) -> None:
         text = self.page()
         css = " ".join(re.findall(r"<style>(.*?)</style>", text, re.DOTALL)) + " " + " ".join(re.findall(r'style="([^"]*)"', text))
         sizes = re.findall(r"font-size\s*:\s*([\d.]+)px", css) + re.findall(r"font\s*:[^;{}]*?(?<![\w.-])([\d.]+)px", css)
         sizes += re.findall(r'font-size="([\d.]+)"', text)
         self.assertTrue(sizes)
-        self.assertEqual([s for s in sizes if float(s) < 11], [])
+        self.assertEqual([s for s in sizes if float(s) < 12], [])
         self.assertNotRegex(css, r"font-size\s*:\s*[\d.]+r?em")
         before, after = (
             ".a{font:400 10px/16px var(--mono)}.b{font-size:10.5px}.c{font-size:13px}",
-            ".a{font:400 11px/16px var(--mono)}.b{font-size:11px}.c{font-size:13px}",
+            ".a{font:400 12px/16px var(--mono)}.b{font-size:12px}.c{font-size:13px}",
         )
         self.assertEqual(render_html.floor_fonts(before), after)
+
+    def test_dates_never_break(self) -> None:
+        text = self.page()
+        self.assertIn(".nd{white-space:nowrap}", text)
+        body = re.sub(r'<span class="nd">\d{4}-\d{2}-\d{2}</span>', "", text.split("<body>", 1)[1])
+        self.assertEqual(re.findall(r"\d{4}-\d{2}-\d{2}", re.sub(r"<[^>]*>", " ", body)), [], "every ISO date in the text sits in a nowrap span")
+        self.assertEqual(
+            render_html.nowrap_dates('<p title="2026-01-02">by 2026-01-02</p><code>2026-01-02</code>'),
+            '<p title="2026-01-02">by <span class="nd">2026-01-02</span></p><code>2026-01-02</code>',
+        )
 
     def test_the_header_prints_the_plain_name_and_the_code_name_is_for_engineers(self) -> None:
         text = self.page()
