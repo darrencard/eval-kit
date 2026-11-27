@@ -6,14 +6,14 @@
     "sha256": "decbe39590cc57b3d47125722a8d43e445d33c8f2f525c00277b94b7937dc95f"
   },
   "cost": {
-    "tool": "cost-budget-check 0.3.1",
+    "tool": "cost-budget-check 0.3.2",
     "budget_status": "over budget",
     "lines": {
       "price_per_token": {
         "actual": {
           "value": 3.2775728155339805e-06,
           "unit": "USD per token",
-          "source": "cost-budget-check 0.3.1: priced cost / tokens; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: priced cost / tokens; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -33,7 +33,7 @@
         "against_budget": {
           "value": 0.09252427184466017,
           "unit": "share over budget",
-          "source": "cost-budget-check 0.3.1: actual / budget - 1; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
+          "source": "cost-budget-check 0.3.2: actual / budget - 1; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -44,7 +44,7 @@
         "prior": {
           "value": 2.5178571428571425e-06,
           "unit": "USD per token",
-          "source": "cost-budget-check 0.3.1: priced cost / tokens, 2026-10-18..2026-10-31; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: priced cost / tokens, 2026-10-18..2026-10-31; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-10-18",
             "to": "2026-10-31"
@@ -54,7 +54,7 @@
         "change": {
           "value": 0.301731047304276,
           "unit": "share change since the prior window",
-          "source": "cost-budget-check 0.3.1: this window / prior window - 1; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: this window / prior window - 1; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -66,7 +66,7 @@
         "actual": {
           "value": 10300.0,
           "unit": "tokens per task",
-          "source": "cost-budget-check 0.3.1: tokens / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: tokens / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -86,7 +86,7 @@
         "against_budget": {
           "value": 0.14444444444444438,
           "unit": "share over budget",
-          "source": "cost-budget-check 0.3.1: actual / budget - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
+          "source": "cost-budget-check 0.3.2: actual / budget - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -97,7 +97,7 @@
         "prior": {
           "value": 8400.0,
           "unit": "tokens per task",
-          "source": "cost-budget-check 0.3.1: tokens / tasks, 2026-10-18..2026-10-31; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: tokens / tasks, 2026-10-18..2026-10-31; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-10-18",
             "to": "2026-10-31"
@@ -107,7 +107,7 @@
         "change": {
           "value": 0.22619047619047628,
           "unit": "share change since the prior window",
-          "source": "cost-budget-check 0.3.1: this window / prior window - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: this window / prior window - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -119,7 +119,7 @@
         "actual": {
           "value": 0.033759,
           "unit": "USD per task",
-          "source": "cost-budget-check 0.3.1: priced cost / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: priced cost / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -139,7 +139,7 @@
         "against_budget": {
           "value": 0.2503333333333333,
           "unit": "share over budget",
-          "source": "cost-budget-check 0.3.1: actual / budget - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
+          "source": "cost-budget-check 0.3.2: actual / budget - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -150,7 +150,7 @@
         "prior": {
           "value": 0.02115,
           "unit": "USD per task",
-          "source": "cost-budget-check 0.3.1: priced cost / tasks, 2026-10-18..2026-10-31; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: priced cost / tasks, 2026-10-18..2026-10-31; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-10-18",
             "to": "2026-10-31"
@@ -160,7 +160,7 @@
         "change": {
           "value": 0.5961702127659574,
           "unit": "share change since the prior window",
-          "source": "cost-budget-check 0.3.1: this window / prior window - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+          "source": "cost-budget-check 0.3.2: this window / prior window - 1; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
           "window": {
             "from": "2026-11-01",
             "to": "2026-11-14"
@@ -173,7 +173,7 @@
     "tokens_per_task": {
       "value": 10300.0,
       "unit": "tokens per task",
-      "source": "cost-budget-check 0.3.1: tokens / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+      "source": "cost-budget-check 0.3.2: tokens / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
       "window": {
         "from": "2026-11-01",
         "to": "2026-11-14"
@@ -183,7 +183,7 @@
     "price_per_token": {
       "value": 3.2775728155339805e-06,
       "unit": "USD per token",
-      "source": "cost-budget-check 0.3.1: priced cost / tokens; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+      "source": "cost-budget-check 0.3.2: priced cost / tokens; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
       "window": {
         "from": "2026-11-01",
         "to": "2026-11-14"
@@ -193,7 +193,7 @@
     "cost_per_task": {
       "value": 0.033759,
       "unit": "USD per task",
-      "source": "cost-budget-check 0.3.1: priced cost / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+      "source": "cost-budget-check 0.3.2: priced cost / tasks; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
       "window": {
         "from": "2026-11-01",
         "to": "2026-11-14"
@@ -236,7 +236,7 @@
     "priced_cost": {
       "value": 9.45252,
       "unit": "USD",
-      "source": "cost-budget-check 0.3.1: sum of tokens x rate per token type; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
+      "source": "cost-budget-check 0.3.2: sum of tokens x rate per token type; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15)",
       "window": {
         "from": "2026-11-01",
         "to": "2026-11-14"
@@ -246,7 +246,7 @@
     "over_budget": {
       "value": 1.8925200000000002,
       "unit": "USD",
-      "source": "cost-budget-check 0.3.1: priced cost - tasks x budgeted cost per task; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
+      "source": "cost-budget-check 0.3.2: priced cost - tasks x budgeted cost per task; distinct task ids in gateway.jsonl; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
       "window": {
         "from": "2026-11-01",
         "to": "2026-11-14"
@@ -258,7 +258,7 @@
       "over_budget": {
         "value": 0.9626399999999999,
         "unit": "USD",
-        "source": "cost-budget-check 0.3.1: model cost - model token share x budgeted cost; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
+        "source": "cost-budget-check 0.3.2: model cost - model token share x budgeted cost; gateway.jsonl; pricing.json (Illustrative prices for the Acme sample. Not any provider's list price., retrieved 2026-10-15); quote-drafting.md",
         "window": {
           "from": "2026-11-01",
           "to": "2026-11-14"
