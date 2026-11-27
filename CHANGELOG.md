@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.4, 2026-11-27
+
+- The HTML page follows the Landing Loop sample anatomy: the shared header (mark, DACARD, skill, date, version, blue Illustrative tag), the verdict as the heading ("Quote drafting is too close to call."), the check word, the signature picture, one next step with the brief's decider in brass and a due date, the figures and the common ways it fails in two columns, then folds for the version history and "For your engineers" (the stored status words, reasons, warnings, clusters, ledger, record key and CI gate).
+- The signature picture: each version's likely range of the pass rate on the test cases kept back, with the rate on it, against the dashed target line. The part of the newest range short of the target is hatched. A 720 wide variant for desktop and a 340 wide one for phones; the aria-label states the answer. Drawn with svgkit, vendored byte-identical from landing-loop and pinned in `vendor/VENDORED.json` under `landing-loop`.
+- Public copy in plain words: quality test, test cases kept back, practice cases, the likely range, too close to call, checking the marker against known answers. JSON keys, flags and file names print only in the engineers' fold. The record's words are unchanged.
+- The By version table prints each version's likely range, so the picture draws no figure the page does not print.
+- Tests: the picture draws only printed figures, states the answer in its aria-label, and the page uses no status colour; the vendored svgkit matches its pin.
+- `report.write` and `render_html.render` take the landing brief, so the next step names who decides. No change to what the skill computes; `skill_version` in the record moves to 0.3.4.
+
 ## 0.3.3, 2026-11-26
 
 - README: install through the Landing Loop bundle (`/plugin marketplace add darrencard/landing-loop`, then `/plugin install eval-kit@landing-loop`), with the paste-in prompt kept for a standalone install.

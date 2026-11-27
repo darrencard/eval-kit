@@ -49,6 +49,7 @@ import landing_brief  # noqa: E402
 import render_html  # noqa: E402
 import report  # noqa: E402
 import run  # noqa: E402
+import svgkit  # noqa: E402
 from evalcore import EVALS_COLUMNS, EvalError, load_traces  # noqa: E402
 
 
@@ -87,12 +88,15 @@ class Vendored(unittest.TestCase):
     def test_every_vendored_file_matches_its_pin(self) -> None:
         pins = json.loads((VENDOR / "VENDORED.json").read_text(encoding="utf-8"))
         self.assertRegex(pins["commit"], r"^[0-9a-f]{40}$")
+        svgkit_pin = pins["landing-loop"]
+        self.assertRegex(svgkit_pin["commit"], r"^[0-9a-f]{40}$")
+        files = {**pins["files"], **svgkit_pin["files"]}
         on_disk = {p.name for p in VENDOR.iterdir() if p.name not in ("VENDORED.json", "README.md", "__pycache__")}
-        self.assertEqual(on_disk, set(pins["files"]))
-        for name, pin in pins["files"].items():
+        self.assertEqual(on_disk, set(files))
+        for name, pin in files.items():
             with self.subTest(name=name):
                 digest = hashlib.sha256((VENDOR / name).read_bytes()).hexdigest()
-                self.assertEqual(digest, pin["sha256"], f"{name} changed. Copy it again from the Leader Report and update VENDORED.json.")
+                self.assertEqual(digest, pin["sha256"], f"{name} changed. Copy it again from its pinned commit and update VENDORED.json.")
 
     def test_the_acme_brief_parses_with_the_vendored_parser(self) -> None:
         brief = landing_brief.parse(BRIEF.read_text(encoding="utf-8"))
@@ -253,7 +257,7 @@ class LoopRecord(Temp):
         self.assertEqual(rec["evals"]["status"], "not confirmed: inside noise")
         self.assertEqual(rec["evals"]["as_of"], "2026-11-15")
         self.assertIn("Against the landing brief: **not confirmed: inside noise**", (out / "report.md").read_text(encoding="utf-8"))
-        self.assertIn("Against the landing brief", (out / "report.html").read_text(encoding="utf-8"))
+        self.assertIn("The plan's number", (out / "report.html").read_text(encoding="utf-8"))
 
     def run_loop(self, record: dict | None) -> dict:
         traces = self.tmp / "traces.csv"
@@ -314,10 +318,10 @@ class Page(Temp):
 
     def test_status_prints_as_plain_words_with_no_status_colour(self) -> None:
         text = self.page()
-        self.assertIn('<span class="status">not confirmed: inside noise</span>', text)
+        self.assertIn('<span class="status">not confirmed: too close to call</span>', text)
         body = text.split('<main class="solo">', 1)[1]
         for word in ("landed", "watch", "stalled", "var(--landed)", "var(--watch)", "var(--stalled)"):
-            self.assertNotIn(word, body)
+            self.assertNotIn(word, body, "green, grey-white and red belong to did-it-land's words, which this page never prints")
         self.assertIn("Illustrative", text)
 
     def test_on_the_leader_report_template(self) -> None:
@@ -325,20 +329,52 @@ class Page(Temp):
         template = render_html.STYLE.search((VENDOR / "template.html").read_text(encoding="utf-8")).group(1)
         self.assertIn(template, text, "the page carries the template's whole stylesheet, unchanged")
         self.assertIn('<span translate="no">DACARD</span>', text)
-        self.assertIn('<span class="ill">Illustrative</span>', text)
+        self.assertIn('<span class="sk-ill">Illustrative</span>', text)
+        self.assertIn(":root{--ill:#74A5DA}", text, "the Illustrative tag is blue")
         css = text.split(template, 1)[1].split("</style>", 1)[0]
-        for rule in (".ill{color:var(--t1)}", "::selection{background:var(--t1)", ":focus-visible{outline-color:var(--t1)}"):
+        for rule in ("::selection{background:var(--t1)", ":focus-visible{outline-color:var(--t1)}"):
             self.assertIn(rule, css, "the page's own rules come after the template's, so they win")
-        self.assertNotIn("brass", css)
         self.assertNotIn('class="ok"', text, "the template's healthy-side band is green, a status colour")
+        brass = [r for r in re.findall(r"[^}]*var\(--brass[^}]*}", css)]
+        self.assertTrue(brass and all(r.lstrip().startswith((".next", "}.next")) for r in brass), "brass is only the person who decides the next step")
 
-    def test_a_leader_gets_the_point_first(self) -> None:
+    def test_the_page_follows_the_sample_anatomy(self) -> None:
         text = self.page()
         body = text.split('<main class="solo">', 1)[1]
-        self.assertIn("Build check: not confirmed: inside noise.", body.split("</p>", 1)[0])
-        self.assertEqual(body.split('<ul class="summary">', 1)[1].split("</ul>", 1)[0].count("<li>"), 5)
-        self.assertIn("<details", body)
-        self.assertLess(body.index("Scorecard"), body.index("<details"))
+        order = [
+            'class="sk-hdr"',
+            "<h1>Quote drafting is too close to call.</h1>",
+            'class="status"',
+            'class="sk-wide"',
+            "What to do next",
+            'class="cols"',
+            "For your engineers",
+        ]
+        at = [body.index(x) for x in order]
+        self.assertEqual(at, sorted(at))
+        self.assertIn('<span class="o">Head of Product, Acme</span>', render_html.render(build(), None, landing.read_brief(BRIEF)))
+        self.assertIn("<details><summary>For your engineers</summary>", body)
+
+    def test_the_visual_draws_only_figures_the_page_prints(self) -> None:
+        text = self.page()
+        self.assertEqual(len(svgkit.visuals_in(text)), 2, "the wide and the tall variant")
+        self.assertEqual(svgkit.unprinted(text), [])
+        self.assertIn("62.7%", svgkit.numbers_in(svgkit.visuals_in(text)[0]))
+
+    def test_the_visual_states_the_answer(self) -> None:
+        r = build()
+        for svg in svgkit.visuals_in(self.page()):
+            self.assertIn('role="img"', svg)
+            label = re.search(r'aria-label="([^"]+)"', svg).group(1)
+            self.assertIn("passes 24 of 30 test cases kept back, 80%", label)
+            self.assertIn("62.7% to 90.5%", label)
+            self.assertTrue(label.endswith("against a 80% target, so it is not confirmed: too close to call."), label)
+        self.assertIn("with no target set.", render_html.range_chart(r["versions"], None, None, "wide"))
+
+    def test_public_copy_uses_plain_words(self) -> None:
+        public = svgkit.page_text(self.page().split("For your engineers", 1)[0]).lower()
+        for word in ("held-out", "holdout", "95% interval", "inside noise", "eval ", "evals ", "judge", "autonomy", "traces"):
+            self.assertNotIn(word, public)
 
     def test_no_cost_figure_without_the_cost_key(self) -> None:
         text = self.page()

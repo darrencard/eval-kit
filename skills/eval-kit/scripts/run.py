@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> None:
     if brief:
         as_of = args.as_of or built["versions"][-1]["run_at"]
         evals = landing.evals_key(built, brief, as_of)
-    report.write(built, out, evals)
+    report.write(built, out, evals, brief)
     if evals and args.bet:
         path = landing.write_record(Path(args.landing), args.bet, Path(args.brief), evals)
         print(f"run: wrote the evals key of {path}; every other key is as it was.")

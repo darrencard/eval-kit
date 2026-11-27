@@ -60,6 +60,6 @@ Same inputs, same bytes: a test checks the command reproduces the committed file
 
 The fixture is Acme, an invented invoicing company for trades businesses, and its quote-drafting assistant. Every figure it produces is illustrative.
 
-Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.3.3. The live-data readers are tested on documented response shapes, not yet on a live account.
+Python 3.11 or later, standard library only. No network calls. MIT licensed. Status: v0.3.4. The live-data readers are tested on documented response shapes, not yet on a live account.
 
 Claude and Claude Code are trademarks of Anthropic, PBC. These skills are independent and not affiliated with or endorsed by Anthropic.

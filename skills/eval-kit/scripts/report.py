@@ -397,13 +397,13 @@ def gate(report: dict, fail_on: str | None, evals: dict | None = None) -> None:
         raise SystemExit(2)
 
 
-def write(report: dict, out: Path, evals: dict | None = None) -> dict:
+def write(report: dict, out: Path, evals: dict | None = None, brief: Any = None) -> dict:
     """evals.csv, report.json, report.html (for leaders) and report.md (its plain-text twin)."""
     out.mkdir(parents=True, exist_ok=True)
     write_evals_csv(report, out / "evals.csv")
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     (out / "report.md").write_text(markdown(report, evals), encoding="utf-8")
-    (out / "report.html").write_text(render_html.render(report, evals), encoding="utf-8")
+    (out / "report.html").write_text(render_html.render(report, evals, brief), encoding="utf-8")
     status = evals["status"] if evals else report["status"]
     print(f"report: {report['latest']}: {status_text(status)}; wrote evals.csv, report.json, report.html and report.md to {out}")
     for w in report["warnings"]:

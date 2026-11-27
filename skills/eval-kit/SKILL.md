@@ -4,7 +4,7 @@ description: Sets up and reports evals for one AI feature from traces or eval re
 license: MIT. See LICENSE in the repository root.
 metadata:
   author: Dacard
-  version: "0.3.3"
+  version: "0.3.4"
 ---
 
 # Eval kit
@@ -52,7 +52,7 @@ python3 scripts/run.py TRACES.csv --feature "<feature>" --brief BRIEF.md --bet <
 - **Against the brief.** When the brief's metric is the held-out pass rate or tasks finished without a person, that figure reads meets target when it and its interval's low end meet the brief's bar, not confirmed: inside noise when only the point estimate does, and below target when it does not; the bar becomes the target. When it is a product metric, the evals are the build check and did-it-land judges the metric; say so. The status is below target if either reads below; meets target only when both do; not confirmed: inside noise when the only gap is the interval. Never call an eval landed, watch or stalled: those are a bet's status, and only did-it-land sets them.
 - **The record.** It writes only the `evals` key and keeps every other key exactly. It refuses a record whose brief changed since another step wrote it. Every figure carries value, unit, source, window and as_of.
 - **Cost belongs to cost-budget-check** (the contract's one owner per figure). eval-kit never computes a cost, in the loop or out of it. It cites cost per task from the record's `cost` key (`run.py --bet`, or `report.py --record landing/<bet>.json`), or says "cost not checked: run cost-budget-check" and prints no cost figure. Never work out a cost from `cost_usd` yourself.
-- **For leaders**, open `run/report.html`: one self-contained page on the Leader Report's own template (`vendor/template.html`, its whole stylesheet, the DACARD wordmark and its scorecard rows), with a one-line answer at the top. `run/report.md` is its plain-text twin.
+- **For leaders**, open `run/report.html`: one self-contained page on the Leader Report's own template (`vendor/template.html`, its whole stylesheet) in plain words. The verdict is the heading, then the likely range of the pass rate against the target (drawn with `vendor/svgkit.py`, vendored from landing-loop), one next step owned by the brief's decider, the figures in two columns, and everything technical folded under "For your engineers". The page prints `not confirmed: inside noise` as "not confirmed: too close to call"; the record keeps the stored words. `run/report.md` is its plain-text twin.
 
 ## Live data first
 
