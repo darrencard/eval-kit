@@ -51,7 +51,7 @@ Same inputs, same bytes: a test checks the command reproduces the committed file
 | Failure clusters | Groups failures by shared terms, with no categories set in advance, and 2 example traces each | Error analysis starts from what actually went wrong |
 | Autonomy with its pair | Tasks finished without a person, only beside the held-out pass rate; the report names it when quality fell meanwhile | Autonomy can't rise unseen while quality falls |
 | CI gate | `--fail-on blocking` or `below-target` exits 2 after writing the report | A regression stops the merge, with the reason to read |
-| Landing Loop | Reads pass rate or autonomy against the landing brief's bar, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, eleven skills and the Leader Report reading the same figures |
+| Landing Loop | Reads pass rate or autonomy against the landing brief's bar, and writes only the `evals` key of `landing/<bet>.json` | One brief, one record, eleven skills (the Leader Report among them) reading the same figures |
 | Live data | Reads OpenAI Evals, Langfuse and PostHog LLM exports; CSV as the fallback | No retyping traces into a spreadsheet |
 | One page for leaders | A self-contained HTML page in the Leader Report's style, with a Markdown twin | Send it as it is; it opens offline |
 | One owner for cost | Computes no cost of its own; cites cost per task from cost-budget-check's `cost` key, or says "cost not checked: run cost-budget-check" | One cost figure across the loop, never two that disagree |
