@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.6, 2026-11-27
+
+- Each version row draws its likely range: svgkit 1.3.0 (vendored byte-identical, pinned at landing-loop 211866e) draws `range_line(interval=(lo, hi))` as a thin grey line with end caps through the dot, and `frame_domain` takes the interval as each row's fourth item so its ends fit the one scale. The figure column prints the range: `24 OF 30 · 80% · RANGE 62.7 TO 90.5%` (v1.3: `21 OF 30 · 70% · RANGE 52.1 TO 83.3%`). The caption names the grey line. Tests: one interval per row (a segment and two end caps), its ends printed in the row, no text in any SVG, the svgkit pin at 1.3.0.
+- Text runs the full column: the heading, the lede, the next step, section text, notes and captions are as wide as the scorecard frame. The page's own CSS lifts every cap on text (the template's `.lede` 62ch, and this page's heading 20ch and fold text 80ch) and sets `text-wrap: balance` on the heading and `pretty` on paragraphs; the vendored template is unchanged. Test: the page CSS sets no max-width on h1, .lede or p, and the override comes after the template's cap.
+
 ## 0.3.5, 2026-11-27
 
 - The picture is scorecard rows in the grammar of the /update outcome scorecard, drawn with svgkit 1.2.0 (vendored byte-identical, pinned at landing-loop 78784ef). One frame, one row per version: a range line with its pass rate on the test cases kept back as a dot and the target as a tick, on one scale for the frame (`frame_domain`, one unit, so the ticks line up); the figure `24 of 30 · 80%`; the check word as text. The target prints once, in the frame head. Geist Mono 12px for labels, figures and words, Geist 14px for names; no text inside any picture. The wide and phone SVG variants and the card around them are gone, and the check word under the heading is plain mono text, not a boxed chip.

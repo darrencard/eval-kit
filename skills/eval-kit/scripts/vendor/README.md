@@ -8,4 +8,4 @@ These files are copied byte for byte from the Product & Technology Leader Report
 | `from_posthog.py` | Reading PostHog responses as they stand |
 | `collect.py` | What `from_posthog.py` imports |
 | `template.html` | The Leader Report page: its whole stylesheet is the HTML report's stylesheet |
-| `svgkit.py` | The page's scorecard rows (svgkit 1.2.0). Copied from landing-loop's `tools/svgkit.py` at the commit in `VENDORED.json` under `landing-loop` |
+| `svgkit.py` | The page's scorecard rows (svgkit 1.3.0). Copied from landing-loop's `tools/svgkit.py` at the commit in `VENDORED.json` under `landing-loop` |

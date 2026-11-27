@@ -7,9 +7,9 @@ at the commit in vendor/VENDORED.json), and draws its picture with svgkit (vendo
 from landing-loop). Only a few rules for this page's layout are added.
 
 It reads top down for someone who has never run an eval: the shared header, the verdict as the heading, then one
-scorecard frame in the grammar of the /update outcome scorecard (svgkit 1.2.0): a row per version with its pass rate on
-the test cases kept back as a dot against the target tick, one scale for the frame, `24 of 30 · 80%` and the check
-word. Geist Mono 12px for labels, figures and words, Geist 14px for names, no text inside any picture. Then one thing
+scorecard frame in the grammar of the /update outcome scorecard (svgkit 1.3.0): a row per version with its pass rate on
+the test cases kept back as a dot and its likely range as a grey line against the target tick, one scale for the
+frame, `24 OF 30 · 80% · RANGE 62.7 TO 90.5%` and the check word. Geist Mono 12px for labels, figures and words, Geist 14px for names, no text inside any picture. Then one thing
 to do next: who owns it (--owner) and who decides, the person the landing brief names.
 The figures follow in two columns. Version history and everything technical (status words as the record stores
 them, reasons, ledger, record key) sit in folds. Public copy uses plain words: quality test, test cases kept back,
@@ -44,7 +44,7 @@ PAGE_CSS = """
 main.solo{margin-left:0}
 .solo .slide{min-height:0}
 .solo .slide.cover{min-height:0;padding-top:40px;padding-bottom:48px;justify-content:flex-start}
-.solo h1{font-size:clamp(34px,4.6vw,60px);line-height:1;letter-spacing:-.04em;max-width:20ch;margin-bottom:20px}
+.solo h1{font-size:clamp(34px,4.6vw,60px);line-height:1;letter-spacing:-.04em;margin-bottom:20px;text-wrap:balance}
 .solo .lede{margin-bottom:24px}
 .solo h2{margin-bottom:16px}
 .status{font:400 12px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t1)}
@@ -69,7 +69,7 @@ main.solo{margin-left:0}
 .fails small{display:block;font:400 11px/16px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:2px}
 .solo details{margin-top:4px}
 .solo details>*:not(summary){margin-top:12px}
-.solo details p,.solo details li{margin:0 0 10px;font-size:13px;color:var(--t2);max-width:80ch}
+.solo details p,.solo details li{margin:0 0 10px;font-size:13px;color:var(--t2)}
 .solo details ul{padding-left:18px}
 .tablewrap td,.tablewrap th{overflow-wrap:anywhere}
 .tablewrap .ex{font-size:12px;color:var(--t3)}
@@ -81,6 +81,8 @@ main.solo{margin-left:0}
 .stack td{border:0;padding:3px 0;display:grid;grid-template-columns:118px 1fr;gap:12px}.stack td.num{text-align:left;white-space:normal}
 .stack td::before{content:attr(data-l);font:400 11px/20px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}}
 @media (max-width:560px){.figs>div{grid-template-columns:1fr;gap:0}}
+.solo h1,.solo .lede,.solo .next,.solo .slide p,.solo .slide li,.solo .sc-c,.sk figcaption{max-width:none}
+.solo .slide p,.solo .slide li,.solo .sc-c{text-wrap:pretty}
 """
 
 # The check words as the record stores them, and as the page prints them.
@@ -203,14 +205,16 @@ def answer(latest: dict, target: float | None, status: str | None) -> str:
 
 
 def scorecard(rows: list[dict], target: float | None, status: str | None, illustrative: bool) -> str:
-    """One row per version: name | range line (the pass rate as a dot, the target as a tick) | `24 of 30 · 80%` |
+    """One row per version: name | range line (the pass rate as a dot, its likely range as a grey line, the target as
+    a tick) | `24 OF 30 · 80% · RANGE 62.7 TO 90.5%` |
     check word. Pass rates share one unit, so the frame has one scale and every target tick lines up."""
     latest = rows[-1]
-    domain = sk.frame_domain([(None, r["pass_rate"], target if target is not None else r["pass_rate"]) for r in rows], relative=False)
+    domain = sk.frame_domain([(None, r["pass_rate"], target if target is not None else r["pass_rate"], tuple(r["pass_ci"])) for r in rows], relative=False)
     out = []
     for r in rows:
-        picture = sk.range_line(actual=r["pass_rate"], target=target, domain=domain)
-        figure = sk.figure_line(f"{r['passed']} OF {r['cases']}", tail=pct(r["pass_rate"]))
+        lo, hi = r["pass_ci"]
+        picture = sk.range_line(actual=r["pass_rate"], target=target, domain=domain, interval=(lo, hi))
+        figure = sk.figure_line(f"{r['passed']} OF {r['cases']}", tail=f"{pct(r['pass_rate'])} · RANGE {lo:g} TO {pct(hi)}")
         out.append(sk.sc_row(f"Version {r['version']}, {r['run_at']}", picture=picture, figure=figure, word=version_word(r, latest, target, status)))
     key = sk.legend("target", f"target {pct(target)}") if target is not None else ""
     return sk.sc_frame(
@@ -219,9 +223,9 @@ def scorecard(rows: list[dict], target: float | None, status: str | None, illust
         title="Test cases kept back",
         head=["Version", "", "Passed · rate", "Check"],
         legend=key,
-        caption="One row per version, on one scale: the dot is the share of test cases kept back that it passes"
+        caption="One row per version, on one scale: the dot is the share of test cases kept back that it passes,"
+        + " the grey line its likely range"
         + (", the tick the target." if target is not None else ".")
-        + " The likely range of the newest rate is in the figures below."
         + own_rule(latest, target, status),
         illustrative=illustrative,
     )

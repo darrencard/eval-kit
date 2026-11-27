@@ -98,6 +98,12 @@ class Vendored(unittest.TestCase):
                 digest = hashlib.sha256((VENDOR / name).read_bytes()).hexdigest()
                 self.assertEqual(digest, pin["sha256"], f"{name} changed. Copy it again from its pinned commit and update VENDORED.json.")
 
+    def test_svgkit_is_pinned_at_1_3_0(self) -> None:
+        pin = json.loads((VENDOR / "VENDORED.json").read_text(encoding="utf-8"))["landing-loop"]
+        self.assertEqual(pin["commit"], "211866e426169d876a9ed752d4224a685f826b53")
+        self.assertEqual(pin["files"]["svgkit.py"]["sha256"], "b8d197ded449247830f9ad6a4d90182663793f85e7a89c5bc42fbfa1724159df")
+        self.assertEqual(svgkit.VERSION, "1.3.0", "range_line(interval=...) needs svgkit 1.3.0")
+
     def test_the_acme_brief_parses_with_the_vendored_parser(self) -> None:
         brief = landing_brief.parse(BRIEF.read_text(encoding="utf-8"))
         self.assertEqual((brief.metric, brief.bar, brief.unit, brief.line), ("Held-out pass rate", 80.0, "%", "model call"))
@@ -362,8 +368,8 @@ class Page(Temp):
         text = self.page()
         self.assertEqual(svgkit.unprinted(text), [])
         frame = svgkit.frames_in(text)[0]
-        self.assertIn('<span class="sc-l"><b>21 OF 30</b> · 70%</span>', frame)
-        self.assertIn('<span class="sc-l"><b>24 OF 30</b> · 80%</span>', frame)
+        self.assertIn('<span class="sc-l"><b>21 OF 30</b> · 70% · RANGE 52.1 TO 83.3%</span>', frame)
+        self.assertIn('<span class="sc-l"><b>24 OF 30</b> · 80% · RANGE 62.7 TO 90.5%</span>', frame)
         self.assertIn('<span class="sc-k"><i class="k-tg"></i>target 80%</span>', frame, "the target prints once, in the legend")
 
     def test_the_visual_states_the_answer(self) -> None:
@@ -375,7 +381,7 @@ class Page(Temp):
         self.assertTrue(labels[0].endswith("against a 80% target, so it is not confirmed: too close to call."), labels[0])
         self.assertIn("with no target set.", render_html.scorecard(r["versions"], None, None, True))
 
-    # The scorecard grammar (landing-loop tools/SCORECARD-ROLLOUT.md, svgkit 1.2.0)
+    # The scorecard grammar (landing-loop tools/SCORECARD-ROLLOUT.md, svgkit 1.3.0)
 
     def css(self, text: str) -> str:
         return text.split("<style>", 1)[1].split("</style>", 1)[0]
@@ -421,6 +427,18 @@ class Page(Temp):
         self.assertIn("--sc-n:calc(14px / var(--sc-z))", css)
         self.assertIn(".scg{--sc-z:1;", css, "a sample page has no zoom")
 
+    def test_text_runs_the_full_column(self) -> None:
+        # The template caps .lede at 62ch; the page's own rules come last and lift every cap on text.
+        for rule in re.findall(r"([^{}]+)\{([^}]*max-width:[^}]*)\}", render_html.PAGE_CSS):
+            selector, body = rule
+            if re.search(r"(^|[\s,])(h1|\.lede|p|\.next)([\s,:.]|$)", selector):
+                self.assertIn("max-width:none", body, selector)
+        self.assertIn(".solo h1,.solo .lede,.solo .next,.solo .slide p,.solo .slide li,.solo .sc-c,.sk figcaption{max-width:none}", render_html.PAGE_CSS)
+        css = self.css(self.page())
+        self.assertGreater(css.rindex("{max-width:none}"), css.index("max-width:62ch"), "the override comes after the template's cap")
+        self.assertIn("text-wrap:balance", render_html.PAGE_CSS)
+        self.assertIn(".solo .slide p,.solo .slide li,.solo .sc-c{text-wrap:pretty}", render_html.PAGE_CSS)
+
     def test_no_box_inside_the_frame_and_no_overlap(self) -> None:
         text = self.page()
         self.assertEqual(svgkit.boxes_in_frames(text, self.css(text)), [])
@@ -440,6 +458,19 @@ class Page(Temp):
         frame = svgkit.frames_in(self.page())[0]
         self.assertNotIn('class="ac ', frame)
         self.assertNotIn('class="st ', frame)
+
+    def test_every_version_row_draws_its_likely_range(self) -> None:
+        r = build()
+        rows = svgkit.frames_in(self.page())[0].split('<div class="sc-r">')[1:]
+        self.assertEqual(len(rows), len(r["versions"]))
+        for row, v in zip(rows, r["versions"], strict=True):
+            with self.subTest(version=v["version"]):
+                svg = re.search(r"<svg.*?</svg>", row, re.S).group(0)
+                self.assertEqual(svg.count('class="iv"'), 3, "one segment and two end caps")
+                self.assertNotIn("<text", svg)
+                lo, hi = v["pass_ci"]
+                self.assertIn(f"RANGE {lo:g} TO {hi:g}%", row, "the interval's ends print as figures in the row")
+        self.assertEqual(svgkit.svgs_with_text(self.page()), [])
 
     def test_one_scale_for_the_frame_so_every_target_tick_lines_up(self) -> None:
         frame = svgkit.frames_in(self.page())[0]
